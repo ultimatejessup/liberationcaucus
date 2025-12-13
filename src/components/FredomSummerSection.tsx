@@ -70,15 +70,25 @@ const FredomSummerSection = () => {
               </div>
             ))}
 
-            <div className={`pt-4 animate-on-scroll stagger-4 ${isVisible ? 'visible' : ''}`}>
+            <div className={`pt-4 flex flex-wrap gap-4 animate-on-scroll stagger-4 ${isVisible ? 'visible' : ''}`}>
               <Button
                 size="lg"
                 className="bg-liberation-dark hover:bg-liberation-dark/90 text-liberation-cream group"
                 asChild
               >
-                <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
-                  Apply for Freedom Summer
+                <a href="/freedom-summer">
+                  Learn More
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </a>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-liberation-dark text-liberation-dark hover:bg-liberation-dark hover:text-liberation-cream"
+                asChild
+              >
+                <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
+                  Apply Now
                 </a>
               </Button>
             </div>

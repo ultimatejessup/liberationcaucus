@@ -6,10 +6,10 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: "About", href: "#about" },
-    { label: "Freedom Summer", href: "#freedom-summer" },
-    { label: "Our Network", href: "#network" },
-    { label: "Get Involved", href: "#get-involved" },
+    { label: "About", href: "/#about" },
+    { label: "Freedom Summer", href: "/freedom-summer" },
+    { label: "Our Network", href: "/#network" },
+    { label: "Get Involved", href: "/#get-involved" },
   ];
 
   return (
