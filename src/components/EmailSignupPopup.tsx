@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 const EmailSignupPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -44,6 +45,8 @@ const EmailSignupPopup = () => {
           body: JSON.stringify({
             person: {
               email_addresses: [{ address: email }],
+              given_name: name.split(" ")[0] || "",
+              family_name: name.split(" ").slice(1).join(" ") || "",
             },
           }),
         }
@@ -93,6 +96,14 @@ const EmailSignupPopup = () => {
 
         {!isSubmitted ? (
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+            <Input
+              type="text"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="bg-liberation-dark/50 border-liberation-gold/40 text-liberation-cream placeholder:text-liberation-cream/50 focus:border-liberation-gold focus:ring-liberation-gold"
+            />
             <Input
               type="email"
               placeholder="Enter your email address"
