@@ -33,13 +33,14 @@ const AboutSection = () => {
             {/* Pillars */}
             <div className="flex flex-wrap gap-3">
               {pillars.map((pillar, index) => (
-                <span
+                <button
                   key={index}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-liberation-cream/10 border border-liberation-cream/20 animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''}`}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-liberation-cream/10 border border-liberation-cream/20 animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''} transition-all duration-200 cursor-pointer hover:bg-liberation-cream/20 active:scale-95 active:shadow-[0_0_20px_rgba(212,175,55,0.5)] focus:outline-none focus:ring-2 focus:ring-liberation-gold/50`}
+                  onClick={() => {}}
                 >
-                  <span className={`w-2 h-2 rounded-full ${pillar.color}`} />
+                  <span className={`w-2 h-2 rounded-full ${pillar.color} transition-transform duration-200`} />
                   <span className="text-liberation-cream text-sm font-medium">{pillar.label}</span>
-                </span>
+                </button>
               ))}
             </div>
           </div>
