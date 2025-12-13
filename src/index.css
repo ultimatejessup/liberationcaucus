@@ -107,7 +107,55 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Scroll Animation Utilities */
+@layer utilities {
+  .animate-on-scroll {
+    @apply opacity-0 translate-y-8 transition-all duration-700 ease-out;
+  }
+
+  .animate-on-scroll.visible {
+    @apply opacity-100 translate-y-0;
+  }
+
+  .animate-on-scroll-left {
+    @apply opacity-0 -translate-x-8 transition-all duration-700 ease-out;
+  }
+
+  .animate-on-scroll-left.visible {
+    @apply opacity-100 translate-x-0;
+  }
+
+  .animate-on-scroll-right {
+    @apply opacity-0 translate-x-8 transition-all duration-700 ease-out;
+  }
+
+  .animate-on-scroll-right.visible {
+    @apply opacity-100 translate-x-0;
+  }
+
+  .animate-on-scroll-scale {
+    @apply opacity-0 scale-95 transition-all duration-700 ease-out;
+  }
+
+  .animate-on-scroll-scale.visible {
+    @apply opacity-100 scale-100;
+  }
+
+  .stagger-1 { transition-delay: 100ms; }
+  .stagger-2 { transition-delay: 200ms; }
+  .stagger-3 { transition-delay: 300ms; }
+  .stagger-4 { transition-delay: 400ms; }
+  .stagger-5 { transition-delay: 500ms; }
+  .stagger-6 { transition-delay: 600ms; }
+  .stagger-7 { transition-delay: 700ms; }
+  .stagger-8 { transition-delay: 800ms; }
 }

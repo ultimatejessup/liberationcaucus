@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const HeroSection = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with overlay */}
@@ -16,23 +23,23 @@ const HeroSection = () => {
       <div className="relative z-10 container mx-auto px-4 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-liberation-gold/20 border border-liberation-gold/40 rounded-full px-4 py-2 mb-8">
+          <div className={`inline-flex items-center gap-2 bg-liberation-gold/20 border border-liberation-gold/40 rounded-full px-4 py-2 mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <span className="w-2 h-2 bg-liberation-gold rounded-full animate-pulse" />
             <span className="text-liberation-gold text-sm font-medium">Now Accepting Applications</span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-liberation-cream mb-6 leading-tight">
+          <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold text-liberation-cream mb-6 leading-tight transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             Building Power for{" "}
             <span className="text-liberation-gold">Liberation</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-liberation-cream/80 max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className={`text-lg md:text-xl text-liberation-cream/80 max-w-2xl mx-auto mb-8 leading-relaxed transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             Advancing the political, community, and economic interests of Black people and people of the African diaspora through the dismantling of oppressive systems.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <Button
               size="lg"
               className="bg-liberation-gold hover:bg-liberation-gold/90 text-liberation-dark font-semibold text-lg px-8 py-6 group"
@@ -54,7 +61,7 @@ const HeroSection = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-liberation-cream/10">
+          <div className={`grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-liberation-cream/10 transition-all duration-700 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-liberation-gold">500+</div>
               <div className="text-liberation-cream/60 text-sm mt-1">Members Strong</div>
