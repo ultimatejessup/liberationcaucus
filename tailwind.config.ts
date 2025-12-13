@@ -47,6 +47,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        liberation: {
+          gold: "hsl(var(--liberation-gold))",
+          red: "hsl(var(--liberation-red))",
+          green: "hsl(var(--liberation-green))",
+          dark: "hsl(var(--liberation-dark))",
+          cream: "hsl(var(--liberation-cream))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
