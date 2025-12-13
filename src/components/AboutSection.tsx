@@ -1,16 +1,57 @@
+import { useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const AboutSection = () => {
   const { ref, isVisible } = useScrollAnimation();
+  const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
   
   const pillars = [
-    { label: "Economic Injustice", color: "bg-liberation-gold" },
-    { label: "Sexism", color: "bg-liberation-red" },
-    { label: "Ableism", color: "bg-liberation-green" },
-    { label: "Racism", color: "bg-liberation-gold" },
-    { label: "Patriarchy", color: "bg-liberation-red" },
-    { label: "Militarism", color: "bg-liberation-green" },
+    { 
+      label: "Economic Injustice", 
+      color: "bg-liberation-gold",
+      definition: "The unfair distribution of economic resources, opportunities, and privileges within a society. It encompasses systemic disparities in wealth, income, employment, and access to essential services that disproportionately affect marginalized communities.",
+      source: "Based on sociological definitions"
+    },
+    { 
+      label: "Sexism", 
+      color: "bg-liberation-red",
+      definition: "Prejudice, stereotyping, or discrimination, typically against women, on the basis of sex. It includes attitudes, conditions, or behaviors that promote stereotyping of social roles based on gender.",
+      source: "Merriam-Webster Dictionary"
+    },
+    { 
+      label: "Ableism", 
+      color: "bg-liberation-green",
+      definition: "Discrimination or prejudice against individuals with disabilities. It includes the belief that typical abilities are superior, leading to the marginalization of people with physical, mental, or developmental disabilities.",
+      source: "Merriam-Webster Dictionary"
+    },
+    { 
+      label: "Racism", 
+      color: "bg-liberation-gold",
+      definition: "A belief that race is a fundamental determinant of human traits and capacities and that racial differences produce an inherent superiority of a particular race. Also includes systemic oppression of a racial group to the social, economic, and political advantage of another.",
+      source: "Merriam-Webster Dictionary"
+    },
+    { 
+      label: "Patriarchy", 
+      color: "bg-liberation-red",
+      definition: "A social system in which men hold primary power and predominate in roles of political leadership, moral authority, social privilege, and control of property. It encompasses institutional structures that perpetuate male dominance.",
+      source: "Wikipedia"
+    },
+    { 
+      label: "Militarism", 
+      color: "bg-liberation-green",
+      definition: "The belief or the desire of a government or people that a state should maintain a strong military capability and be prepared to use it aggressively to defend or promote national interests. It often prioritizes military solutions over diplomatic ones.",
+      source: "Merriam-Webster Dictionary"
+    },
   ];
+
+  const currentPillar = pillars.find(p => p.label === selectedPillar);
 
   return (
     <section id="about" className="py-24 bg-liberation-dark" ref={ref}>
@@ -36,13 +77,30 @@ const AboutSection = () => {
                 <button
                   key={index}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-liberation-cream/10 border border-liberation-cream/20 animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''} transition-all duration-200 cursor-pointer hover:bg-liberation-cream/20 active:scale-95 active:shadow-[0_0_20px_rgba(212,175,55,0.5)] focus:outline-none focus:ring-2 focus:ring-liberation-gold/50`}
-                  onClick={() => {}}
+                  onClick={() => setSelectedPillar(pillar.label)}
                 >
                   <span className={`w-2 h-2 rounded-full ${pillar.color} transition-transform duration-200`} />
                   <span className="text-liberation-cream text-sm font-medium">{pillar.label}</span>
                 </button>
               ))}
             </div>
+
+            <Dialog open={!!selectedPillar} onOpenChange={() => setSelectedPillar(null)}>
+              <DialogContent className="bg-liberation-dark border-liberation-cream/20 text-liberation-cream">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl text-liberation-gold flex items-center gap-3">
+                    <span className={`w-3 h-3 rounded-full ${currentPillar?.color}`} />
+                    {currentPillar?.label}
+                  </DialogTitle>
+                  <DialogDescription className="text-liberation-cream/80 text-base leading-relaxed pt-4">
+                    {currentPillar?.definition}
+                  </DialogDescription>
+                </DialogHeader>
+                <p className="text-xs text-liberation-cream/50 mt-2">
+                  Source: {currentPillar?.source}
+                </p>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Image Grid */}
