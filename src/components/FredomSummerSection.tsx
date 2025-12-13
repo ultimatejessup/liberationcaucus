@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, BookOpen, ArrowRight } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const FredomSummerSection = () => {
+  const { ref, isVisible } = useScrollAnimation();
+  
   const features = [
     {
       icon: BookOpen,
@@ -21,10 +24,10 @@ const FredomSummerSection = () => {
   ];
 
   return (
-    <section id="freedom-summer" className="py-24 bg-liberation-cream">
+    <section id="freedom-summer" className="py-24 bg-liberation-cream" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center mb-16">
+        <div className={`max-w-3xl mx-auto text-center mb-16 animate-on-scroll ${isVisible ? 'visible' : ''}`}>
           <span className="text-liberation-red font-semibold text-sm tracking-widest uppercase">Leadership Development</span>
           <h2 className="text-4xl md:text-5xl font-bold text-liberation-dark mt-4 mb-6">
             Freedom Summer Leadership Program
@@ -37,7 +40,7 @@ const FredomSummerSection = () => {
         {/* Two Column Layout */}
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Image Side */}
-          <div className="relative">
+          <div className={`relative animate-on-scroll-left ${isVisible ? 'visible' : ''}`}>
             <div className="aspect-[4/3] rounded-2xl overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80"
@@ -53,7 +56,10 @@ const FredomSummerSection = () => {
           {/* Content Side */}
           <div className="space-y-8">
             {features.map((feature, index) => (
-              <div key={index} className="flex gap-4">
+              <div 
+                key={index} 
+                className={`flex gap-4 animate-on-scroll-right stagger-${index + 1} ${isVisible ? 'visible' : ''}`}
+              >
                 <div className="flex-shrink-0 w-12 h-12 bg-liberation-gold/20 rounded-xl flex items-center justify-center">
                   <feature.icon className="w-6 h-6 text-liberation-gold" />
                 </div>
@@ -64,7 +70,7 @@ const FredomSummerSection = () => {
               </div>
             ))}
 
-            <div className="pt-4">
+            <div className={`pt-4 animate-on-scroll stagger-4 ${isVisible ? 'visible' : ''}`}>
               <Button
                 size="lg"
                 className="bg-liberation-dark hover:bg-liberation-dark/90 text-liberation-cream group"

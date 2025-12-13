@@ -1,4 +1,8 @@
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+
 const PartnersSection = () => {
+  const { ref, isVisible } = useScrollAnimation();
+  
   // Placeholder partner organizations - these would be replaced with actual logos
   const partners = [
     { name: "Black Voters Matter", initials: "BVM" },
@@ -12,9 +16,9 @@ const PartnersSection = () => {
   ];
 
   return (
-    <section id="network" className="py-24 bg-liberation-cream">
+    <section id="network" className="py-24 bg-liberation-cream" ref={ref}>
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className={`text-center mb-16 animate-on-scroll ${isVisible ? 'visible' : ''}`}>
           <span className="text-liberation-red font-semibold text-sm tracking-widest uppercase">Our Network</span>
           <h2 className="text-4xl md:text-5xl font-bold text-liberation-dark mt-4 mb-6">
             Building Power Together
@@ -29,7 +33,7 @@ const PartnersSection = () => {
           {partners.map((partner, index) => (
             <div
               key={index}
-              className="group bg-liberation-dark/5 hover:bg-liberation-dark rounded-2xl p-8 flex flex-col items-center justify-center aspect-square transition-all duration-300 cursor-pointer"
+              className={`group bg-liberation-dark/5 hover:bg-liberation-dark rounded-2xl p-8 flex flex-col items-center justify-center aspect-square transition-all duration-300 cursor-pointer animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''}`}
             >
               <div className="w-16 h-16 bg-liberation-gold/20 group-hover:bg-liberation-gold rounded-full flex items-center justify-center mb-4 transition-colors">
                 <span className="text-liberation-dark group-hover:text-liberation-dark font-bold text-sm">
@@ -44,7 +48,7 @@ const PartnersSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
+        <div className={`text-center mt-16 animate-on-scroll stagger-8 ${isVisible ? 'visible' : ''}`}>
           <p className="text-liberation-dark/70 mb-4">Interested in partnering with Liberation Caucus?</p>
           <a 
             href="mailto:partnerships@liberationcaucus.org"
