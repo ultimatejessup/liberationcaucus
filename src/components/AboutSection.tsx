@@ -4,12 +4,12 @@ const AboutSection = () => {
   const { ref, isVisible } = useScrollAnimation();
   
   const pillars = [
-    { label: "Economic Justice", color: "bg-liberation-gold" },
-    { label: "Anti-Racism", color: "bg-liberation-red" },
-    { label: "Anti-Sexism", color: "bg-liberation-green" },
-    { label: "Anti-Ableism", color: "bg-liberation-gold" },
-    { label: "Anti-Militarism", color: "bg-liberation-red" },
-    { label: "Anti-Patriarchy", color: "bg-liberation-green" },
+    { label: "Economic Injustice", color: "bg-liberation-gold" },
+    { label: "Sexism", color: "bg-liberation-red" },
+    { label: "Ableism", color: "bg-liberation-green" },
+    { label: "Racism", color: "bg-liberation-gold" },
+    { label: "Patriarchy", color: "bg-liberation-red" },
+    { label: "Militarism", color: "bg-liberation-green" },
   ];
 
   return (
