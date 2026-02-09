@@ -7,58 +7,30 @@ const corsHeaders = {
 
 const SHEET_ID = '15WE0TAFOSOe1B48rnvQEWC7nlRRH95bvntKKqzvI0mA';
 
-function parseCSV(csv: string): Record<string, string>[] {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
+function parseGvizResponse(text: string): Record<string, string>[] {
+  // Response format: google.visualization.Query.setResponse({...})
+  const jsonStr = text.replace(/^.*?\(/, '').replace(/\);?\s*$/, '');
+  const json = JSON.parse(jsonStr);
   
-  const headers = parseCSVLine(lines[0]).map(h => h.trim());
+  if (json.status === 'error') {
+    throw new Error(json.errors?.[0]?.detailed_message || 'Google Sheets query error');
+  }
+
+  const table = json.table;
+  const headers = table.cols.map((col: any) => col.label || col.id);
   const rows: Record<string, string>[] = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i]);
-    const row: Record<string, string> = {};
-    headers.forEach((header, idx) => {
-      row[header] = (values[idx] || '').trim();
+
+  for (const row of table.rows) {
+    const obj: Record<string, string> = {};
+    row.c.forEach((cell: any, idx: number) => {
+      obj[headers[idx]] = cell?.v?.toString() || cell?.f || '';
     });
     // Skip empty rows
-    if (Object.values(row).some(v => v.length > 0)) {
-      rows.push(row);
+    if (Object.values(obj).some(v => v.length > 0)) {
+      rows.push(obj);
     }
   }
   return rows;
-}
-
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (inQuotes) {
-      if (char === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += char;
-      }
-    } else {
-      if (char === '"') {
-        inQuotes = true;
-      } else if (char === ',') {
-        result.push(current);
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-  }
-  result.push(current);
-  return result;
 }
 
 serve(async (req) => {
@@ -69,28 +41,22 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const sheet = url.searchParams.get('sheet') || 'Events';
-    
-    // gid mapping: first sheet = 0, second sheet = gid from URL
-    const gidMap: Record<string, string> = {
-      'Events': '0',
-      'News': '1',
-    };
-    
-    const gid = gidMap[sheet] || '0';
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-    
-    console.log(`Fetching sheet: ${sheet} from ${csvUrl}`);
-    
-    const response = await fetch(csvUrl);
+
+    // Use the public gviz endpoint which works with published sheets
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+
+    console.log(`Fetching sheet: ${sheet}`);
+
+    const response = await fetch(gvizUrl);
     if (!response.ok) {
       console.error(`Failed to fetch sheet: ${response.status} ${response.statusText}`);
       throw new Error(`Failed to fetch Google Sheet: ${response.statusText}`);
     }
-    
-    const csvText = await response.text();
-    console.log(`Received CSV (${csvText.length} chars), first 200: ${csvText.substring(0, 200)}`);
-    
-    const data = parseCSV(csvText);
+
+    const text = await response.text();
+    console.log(`Received response (${text.length} chars)`);
+
+    const data = parseGvizResponse(text);
     console.log(`Parsed ${data.length} rows from ${sheet}`);
 
     return new Response(JSON.stringify({ data, sheet }), {
