@@ -42,9 +42,9 @@ const Footer = () => {
           <div>
             <h4 className="text-liberation-gold font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="#about" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">About Us</a></li>
-              <li><a href="#freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</a></li>
-              <li><a href="#network" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Our Network</a></li>
+              <li><a href="/about" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">About Us</a></li>
+              <li><a href="/freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</a></li>
+              <li><a href="/faq" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">FAQ</a></li>
               <li><a href="#donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</a></li>
             </ul>
           </div>
