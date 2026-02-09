@@ -2,3 +2,6 @@ project_id = "gkciojbfkjlkvjerbona"
 
 [functions.google-sheets-cms]
 verify_jwt = false
+
+[functions.contact-form]
+verify_jwt = false

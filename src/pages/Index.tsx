@@ -3,6 +3,7 @@ import EmailSignupPopup from "@/components/EmailSignupPopup";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import FredomSummerSection from "@/components/FredomSummerSection";
+import ContactForm from "@/components/ContactForm";
 import DonateSection from "@/components/DonateSection";
 
 import Footer from "@/components/Footer";
@@ -24,6 +25,7 @@ const Index = () => {
       <main>
         <HeroSection />
         <FredomSummerSection />
+        <ContactForm />
         <DonateSection />
       </main>
       
