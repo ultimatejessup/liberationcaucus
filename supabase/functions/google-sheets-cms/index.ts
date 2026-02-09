@@ -1,3 +1,4 @@
+// Google Sheets CMS edge function
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -7,31 +8,54 @@ const corsHeaders = {
 
 const SHEET_ID = '15WE0TAFOSOe1B48rnvQEWC7nlRRH95bvntKKqzvI0mA';
 
-function parseGvizResponse(text: string): Record<string, string>[] {
-  // Response format: google.visualization.Query.setResponse({...})
-  const jsonStr = text.replace(/^.*?\(/, '').replace(/\);?\s*$/, '');
-  const json = JSON.parse(jsonStr);
-  
-  if (json.status === 'error') {
-    throw new Error(json.errors?.[0]?.detailed_message || 'Google Sheets query error');
+function parseCSV(csvText: string): Record<string, string>[] {
+  const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+  if (lines.length < 2) return [];
+
+  function parseLine(line: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
   }
 
-  const table = json.table;
-  const headers = table.cols.map((col: any) => col.label || col.id);
+  const headers = parseLine(lines[0]);
   const rows: Record<string, string>[] = [];
 
-  for (const row of table.rows) {
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseLine(lines[i]);
     const obj: Record<string, string> = {};
-    row.c.forEach((cell: any, idx: number) => {
-      obj[headers[idx]] = cell?.v?.toString() || cell?.f || '';
+    headers.forEach((header, idx) => {
+      obj[header] = values[idx] || '';
     });
-    // Skip empty rows
     if (Object.values(obj).some(v => v.length > 0)) {
       rows.push(obj);
     }
   }
   return rows;
 }
+
+const SHEET_GIDS: Record<string, string> = {
+  'Events': '0',
+  'News': '1',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,22 +65,46 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const sheet = url.searchParams.get('sheet') || 'Events';
+    const gid = SHEET_GIDS[sheet] || '0';
 
-    // Use the public gviz endpoint which works with published sheets
-    const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+    // Use the pub endpoint for published sheets - no auth needed
+    const csvUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-${SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
 
-    console.log(`Fetching sheet: ${sheet}`);
+    // Also try the direct export URL as fallback
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 
-    const response = await fetch(gvizUrl);
+    // Try the gviz endpoint with proper headers
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+
+    console.log(`Fetching sheet: ${sheet} (gid: ${gid})`);
+
+    // Try gviz with csv output first
+    let response = await fetch(gvizUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Bot/1.0)',
+      },
+    });
+
     if (!response.ok) {
-      console.error(`Failed to fetch sheet: ${response.status} ${response.statusText}`);
+      console.log(`gviz failed (${response.status}), trying export URL...`);
+      response = await fetch(exportUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Bot/1.0)',
+        },
+      });
+    }
+
+    if (!response.ok) {
+      console.error(`All fetch attempts failed: ${response.status} ${response.statusText}`);
+      const body = await response.text();
+      console.error(`Response body: ${body.substring(0, 500)}`);
       throw new Error(`Failed to fetch Google Sheet: ${response.statusText}`);
     }
 
     const text = await response.text();
-    console.log(`Received response (${text.length} chars)`);
+    console.log(`Received response (${text.length} chars), first 200: ${text.substring(0, 200)}`);
 
-    const data = parseGvizResponse(text);
+    const data = parseCSV(text);
     console.log(`Parsed ${data.length} rows from ${sheet}`);
 
     return new Response(JSON.stringify({ data, sheet }), {
