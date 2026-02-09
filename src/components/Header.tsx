@@ -9,8 +9,6 @@ const Header = () => {
     { label: "About Us", href: "/about" },
     { label: "Events", href: "/events" },
     { label: "News", href: "/news" },
-    { label: "Freedom Summer", href: "/freedom-summer" },
-    { label: "FAQ", href: "/faq" },
     { label: "Get Involved", href: "/#get-involved" },
   ];
 
