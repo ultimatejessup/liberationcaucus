@@ -7,6 +7,7 @@ export interface CMSEvent {
   Location: string;
   Description: string;
   Link: string;
+  [key: string]: string;
 }
 
 export interface CMSNews {
@@ -14,8 +15,10 @@ export interface CMSNews {
   Date: string;
   Summary: string;
   Content: string;
+  "Image url": string;
   "Image URL": string;
   Link: string;
+  [key: string]: string;
 }
 
 async function fetchSheet<T>(sheet: string): Promise<T[]> {

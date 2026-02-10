@@ -16,10 +16,10 @@ const NewsCard = ({ article, index }: { article: CMSNews; index: number }) => {
       className={`animate-on-scroll ${isVisible ? "visible" : ""} stagger-${(index % 4) + 1}`}
     >
       <div className="bg-liberation-dark/50 border border-liberation-gold/20 rounded-xl overflow-hidden hover:border-liberation-gold/40 transition-all h-full flex flex-col">
-        {article["Image URL"] && (
+        {(article["Image URL"] || article["Image url"]) && (
           <div className="aspect-video overflow-hidden">
             <img
-              src={article["Image URL"]}
+              src={article["Image URL"] || article["Image url"]}
               alt={article.Title}
               className="w-full h-full object-cover"
               loading="lazy"
