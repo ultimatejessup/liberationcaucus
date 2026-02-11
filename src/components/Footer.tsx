@@ -56,9 +56,8 @@ const Footer = () => {
             <h4 className="text-liberation-gold font-semibold mb-4">Contact</h4>
             <ul className="space-y-3">
               <li><a href="mailto:info@liberationcaucus.org" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">info@liberationcaucus.org</a></li>
-              <li><a href="#" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Twitter/X</a></li>
-              <li><a href="#" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Instagram</a></li>
-              <li><a href="#" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Facebook</a></li>
+              <li><a href="https://www.instagram.com/liberationcaucus" target="_blank" rel="noopener noreferrer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Instagram</a></li>
+              <li><a href="https://www.facebook.com/liberationcaucus" target="_blank" rel="noopener noreferrer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Facebook</a></li>
             </ul>
           </div>
         </div>
