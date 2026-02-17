@@ -62,7 +62,7 @@ const DonateSection = () => {
                 size="lg"
                 asChild
               >
-                <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">
+                <a href="https://actionnetwork.org/fundraising/donate-lc-pac?source=direct_link&" target="_blank" rel="noopener noreferrer">
                   Donate to PAC
                 </a>
               </Button>
