@@ -52,7 +52,7 @@ const Header = () => {
               </a>
             </Button>
             <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream" asChild>
-              <a href="#donate">Donate</a>
+              <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">Donate</a>
             </Button>
           </div>
 
@@ -91,7 +91,7 @@ const Header = () => {
                   </a>
                 </Button>
                 <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream w-full" asChild>
-                  <a href="#donate">Donate</a>
+                  <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">Donate</a>
                 </Button>
               </div>
             </nav>

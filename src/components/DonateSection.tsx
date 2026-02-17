@@ -39,8 +39,11 @@ const DonateSection = () => {
               <Button
                 className="w-full bg-liberation-gold hover:bg-liberation-gold/90 text-liberation-dark font-semibold"
                 size="lg"
+                asChild
               >
-                Donate to LC
+                <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">
+                  Donate to LC
+                </a>
               </Button>
             </div>
 
@@ -57,8 +60,11 @@ const DonateSection = () => {
                 variant="outline"
                 className="w-full border-liberation-cream text-liberation-cream hover:bg-liberation-cream hover:text-liberation-dark font-semibold"
                 size="lg"
+                asChild
               >
-                Donate to PAC
+                <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">
+                  Donate to PAC
+                </a>
               </Button>
             </div>
           </div>
