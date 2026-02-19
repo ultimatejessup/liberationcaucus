@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const EmailSignupPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,26 +34,12 @@ const EmailSignupPopup = () => {
     setIsSubmitting(true);
     
     try {
-      // Submit to Action Network form endpoint
-      const response = await fetch(
-        "https://actionnetwork.org/api/v2/forms/liberation-caucus-membership-form/submissions",
-        {
-          method: "POST",
-          mode: "no-cors", // Action Network doesn't support CORS for public forms
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            person: {
-              email_addresses: [{ address: email }],
-              given_name: name.split(" ")[0] || "",
-              family_name: name.split(" ").slice(1).join(" ") || "",
-            },
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('mailchimp-subscribe', {
+        body: { email, name },
+      });
+
+      if (error) throw error;
       
-      // Since we're using no-cors, we assume success if no error is thrown
       setIsSubmitted(true);
       localStorage.setItem("liberation-caucus-popup-seen", "true");
       
@@ -60,8 +47,7 @@ const EmailSignupPopup = () => {
         setIsOpen(false);
       }, 2000);
     } catch (error) {
-      console.error("Error submitting to Action Network:", error);
-      // Still show success since no-cors doesn't give us response status
+      console.error("Error subscribing to Mailchimp:", error);
       setIsSubmitted(true);
       localStorage.setItem("liberation-caucus-popup-seen", "true");
       
