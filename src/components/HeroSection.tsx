@@ -50,30 +50,6 @@ const HeroSection = () => {
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-liberation-cream/40 text-liberation-cream hover:bg-liberation-cream/10 text-lg px-8 py-6"
-              asChild
-            >
-              <a href="#freedom-summer">Learn About Freedom Summer</a>
-            </Button>
-          </div>
-
-          {/* Stats */}
-          <div className={`grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-liberation-cream/10 transition-all duration-700 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-liberation-gold">500+</div>
-              <div className="text-liberation-cream/60 text-sm mt-1">Members Strong</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-liberation-gold">25</div>
-              <div className="text-liberation-cream/60 text-sm mt-1">Partner Orgs</div>
-            </div>
-            <div>
-              <div className="text-3xl md:text-4xl font-bold text-liberation-gold">12</div>
-              <div className="text-liberation-cream/60 text-sm mt-1">States Active</div>
-            </div>
           </div>
         </div>
       </div>
