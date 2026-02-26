@@ -47,12 +47,12 @@ const Header = () => {
               className="border-liberation-gold text-liberation-gold hover:bg-liberation-gold hover:text-liberation-dark"
               asChild
             >
-              <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
+              <a href="/membership">
                 Join Us
               </a>
             </Button>
             <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream" asChild>
-              <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">Donate</a>
+              <a href="/donate">Donate</a>
             </Button>
           </div>
 
@@ -86,12 +86,12 @@ const Header = () => {
                   className="border-liberation-gold text-liberation-gold hover:bg-liberation-gold hover:text-liberation-dark w-full"
                   asChild
                 >
-                  <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
+                  <a href="/membership">
                     Join Us
                   </a>
                 </Button>
                 <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream w-full" asChild>
-                  <a href="https://actionnetwork.org/fundraising/lc-donate" target="_blank" rel="noopener noreferrer">Donate</a>
+                  <a href="/donate">Donate</a>
                 </Button>
               </div>
             </nav>
