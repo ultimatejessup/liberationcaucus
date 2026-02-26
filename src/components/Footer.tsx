@@ -17,7 +17,7 @@ const Footer = () => {
             className="bg-liberation-gold hover:bg-liberation-gold/90 text-liberation-dark font-semibold"
             asChild
           >
-            <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
+            <a href="/membership">
               Become a Member
             </a>
           </Button>
@@ -47,7 +47,7 @@ const Footer = () => {
               <li><a href="/news" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">News</a></li>
               <li><a href="/freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</a></li>
               <li><a href="/faq" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">FAQ</a></li>
-              <li><a href="#donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</a></li>
+              <li><a href="/donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</a></li>
             </ul>
           </div>
 
