@@ -6,7 +6,17 @@ import { Users, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+
+const COMMITTEES = [
+  "Rules, Bylaws and Policy",
+  "Membership",
+  "Finance",
+  "Operations",
+  "Civic Engagement",
+];
 
 const Membership = () => {
   const { toast } = useToast();
@@ -16,12 +26,23 @@ const Membership = () => {
     firstName: "",
     lastName: "",
     email: "",
+    mobile: "",
     zipCode: "",
-    phone: "",
+    precinctLeader: "",
+    committees: [] as string[],
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleCommitteeToggle = (committee: string) => {
+    setForm((prev) => ({
+      ...prev,
+      committees: prev.committees.includes(committee)
+        ? prev.committees.filter((c) => c !== committee)
+        : [...prev.committees, committee],
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,7 +52,6 @@ const Membership = () => {
       return;
     }
     setLoading(true);
-    // Simulate submission
     setTimeout(() => {
       setLoading(false);
       setSubmitted(true);
@@ -54,7 +74,7 @@ const Membership = () => {
               <Users className="w-8 h-8 text-liberation-gold" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-liberation-cream mb-4">
-              Become a <span className="text-liberation-gold">Member</span>
+              Join the <span className="text-liberation-gold">Liberation Caucus</span>
             </h1>
             <p className="text-liberation-cream/70 text-lg">
               Membership is vital to staying informed with caucus events and opportunities. Join us today and be part of the movement.
@@ -94,8 +114,9 @@ const Membership = () => {
                     />
                   </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-liberation-cream">Email Address *</Label>
+                  <Label htmlFor="email" className="text-liberation-cream">Email *</Label>
                   <Input
                     id="email"
                     name="email"
@@ -106,9 +127,22 @@ const Membership = () => {
                     className="bg-liberation-dark border-liberation-gold/30 text-liberation-cream placeholder:text-liberation-cream/40 focus:border-liberation-gold"
                   />
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="zipCode" className="text-liberation-cream">Zip Code *</Label>
+                    <Label htmlFor="mobile" className="text-liberation-cream">Mobile Number</Label>
+                    <Input
+                      id="mobile"
+                      name="mobile"
+                      type="tel"
+                      value={form.mobile}
+                      onChange={handleChange}
+                      placeholder="(201) 555-0123"
+                      className="bg-liberation-dark border-liberation-gold/30 text-liberation-cream placeholder:text-liberation-cream/40 focus:border-liberation-gold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode" className="text-liberation-cream">Zip/Postal Code *</Label>
                     <Input
                       id="zipCode"
                       name="zipCode"
@@ -118,19 +152,46 @@ const Membership = () => {
                       className="bg-liberation-dark border-liberation-gold/30 text-liberation-cream placeholder:text-liberation-cream/40 focus:border-liberation-gold"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-liberation-cream">Are you interested in becoming a precinct leader?</Label>
+                  <Select
+                    value={form.precinctLeader}
+                    onValueChange={(value) => setForm((prev) => ({ ...prev, precinctLeader: value }))}
+                  >
+                    <SelectTrigger className="bg-liberation-dark border-liberation-gold/30 text-liberation-cream focus:border-liberation-gold">
+                      <SelectValue placeholder="I want to become a precinct leader" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-liberation-dark border-liberation-gold/30">
+                      <SelectItem value="yes" className="text-liberation-cream">I want to become a precinct leader</SelectItem>
+                      <SelectItem value="no" className="text-liberation-cream">Not at this time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-liberation-cream">Sign up for a Caucus Committee</Label>
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-liberation-cream">Phone (optional)</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={handleChange}
-                      placeholder="(555) 555-5555"
-                      className="bg-liberation-dark border-liberation-gold/30 text-liberation-cream placeholder:text-liberation-cream/40 focus:border-liberation-gold"
-                    />
+                    {COMMITTEES.map((committee) => (
+                      <div key={committee} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`committee-${committee}`}
+                          checked={form.committees.includes(committee)}
+                          onCheckedChange={() => handleCommitteeToggle(committee)}
+                          className="border-liberation-gold/40 data-[state=checked]:bg-liberation-gold data-[state=checked]:border-liberation-gold"
+                        />
+                        <Label
+                          htmlFor={`committee-${committee}`}
+                          className="text-liberation-cream/80 font-normal cursor-pointer"
+                        >
+                          {committee}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
+
                 <Button
                   type="submit"
                   disabled={loading}
