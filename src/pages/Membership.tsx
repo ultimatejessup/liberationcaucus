@@ -18,6 +18,17 @@ const COMMITTEES = [
   "Civic Engagement",
 ];
 
+const COUNCILS = [
+  "Small Business",
+  "Womens",
+  "Mens",
+  "Faith",
+  "LGBTQ",
+  "Technology",
+  "Youth",
+  "Democracy",
+];
+
 const Membership = () => {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
@@ -30,6 +41,7 @@ const Membership = () => {
     zipCode: "",
     precinctLeader: "",
     committees: [] as string[],
+    councils: [] as string[],
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +54,15 @@ const Membership = () => {
       committees: prev.committees.includes(committee)
         ? prev.committees.filter((c) => c !== committee)
         : [...prev.committees, committee],
+    }));
+  };
+
+  const handleCouncilToggle = (council: string) => {
+    setForm((prev) => ({
+      ...prev,
+      councils: prev.councils.includes(council)
+        ? prev.councils.filter((c) => c !== council)
+        : [...prev.councils, council],
     }));
   };
 
@@ -186,6 +207,28 @@ const Membership = () => {
                           className="text-liberation-cream/80 font-normal cursor-pointer"
                         >
                           {committee}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-liberation-cream">Join a Liberation Caucus Council</Label>
+                  <div className="space-y-2">
+                    {COUNCILS.map((council) => (
+                      <div key={council} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`council-${council}`}
+                          checked={form.councils.includes(council)}
+                          onCheckedChange={() => handleCouncilToggle(council)}
+                          className="border-liberation-gold/40 data-[state=checked]:bg-liberation-gold data-[state=checked]:border-liberation-gold"
+                        />
+                        <Label
+                          htmlFor={`council-${council}`}
+                          className="text-liberation-cream/80 font-normal cursor-pointer"
+                        >
+                          {council}
                         </Label>
                       </div>
                     ))}
