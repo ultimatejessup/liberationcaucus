@@ -45,6 +45,10 @@ All colors MUST be HSL.
     --liberation-dark: 20 15% 10%;
     --liberation-cream: 40 30% 95%;
 
+    /* Purple Book directory — government level accents (Federal/State reuse gold/green above) */
+    --liberation-purple: 270 40% 55%;
+    --liberation-orange: 25 85% 55%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
