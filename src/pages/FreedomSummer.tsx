@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -32,81 +33,84 @@ const FreedomSummer = () => {
     }
   ];
 
-  const timeline = [
+  const enrollmentSteps = [
     {
-      date: "January 15",
-      title: "Applications Open",
-      description: "Submit your application including essay responses and references."
+      title: "Become a Member",
+      description: "Freedom Summer enrollment is open to current Liberation Caucus members. If you haven't joined yet, start there.",
     },
     {
-      date: "March 1",
-      title: "Application Deadline",
-      description: "All applications must be submitted by 11:59 PM EST."
+      title: "Submit Your Enrollment",
+      description: "Members complete a short enrollment form, including a brief statement of interest.",
     },
     {
-      date: "March 15 - April 15",
-      title: "Interview Period",
-      description: "Selected applicants participate in virtual interviews with program staff."
+      title: "Enrollment Review",
+      description: "Our program team reviews enrollment submissions and follows up with next steps.",
     },
     {
-      date: "May 1",
-      title: "Acceptance Notifications",
-      description: "All applicants receive decisions and accepted participants confirm enrollment."
+      title: "Confirmation",
+      description: "Confirmed participants receive program details, including schedule, location, and what to prepare.",
     },
     {
-      date: "June 1 - August 15",
       title: "Program Sessions",
-      description: "10-week intensive program combining virtual sessions with in-person retreats."
+      description: "An intensive program combining sessions with in-person retreats.",
     },
     {
-      date: "August 30",
-      title: "Graduation & Alumni Network",
-      description: "Celebration ceremony and induction into the Freedom Summer alumni community."
-    }
+      title: "Completion & Alumni Network",
+      description: "Participants who complete the program join the Freedom Summer alumni community.",
+    },
   ];
 
+  // TODO: REVIEW BEFORE PUBLISH — these testimonials have not been verified as real,
+  // consented alumni quotes. Per program review requirements, do not publish this section
+  // until the Freedom Summer program (and these specific testimonials, if real) have been
+  // reviewed and approved outside of this site-build process.
   const testimonials = [
     {
       quote: "Freedom Summer transformed my understanding of what's possible when we organize with intention. The connections I made continue to fuel my work today.",
       name: "Marcus Johnson",
-      role: "2023 Alumni, Community Organizer",
+      role: "Alumni, Community Organizer",
       location: "Atlanta, GA"
     },
     {
       quote: "The political education I received gave me the historical grounding and strategic framework to be more effective in my advocacy work. This program is essential.",
       name: "Aisha Williams",
-      role: "2022 Alumni, Policy Advocate",
+      role: "Alumni, Policy Advocate",
       location: "Detroit, MI"
     },
     {
       quote: "I came to Freedom Summer looking for skills. I left with a family of fellow freedom fighters who push me to be better every day.",
       name: "Terrence Davis",
-      role: "2023 Alumni, Labor Organizer",
+      role: "Alumni, Labor Organizer",
       location: "Oakland, CA"
     }
   ];
 
   const eligibility = [
     "Must identify as Black or of African descent",
-    "Age 18 or older at program start",
+    "Age 18 or older",
+    "Must be a current member of the Liberation Caucus",
     "Demonstrated commitment to social justice and community work",
-    "Available for full program duration (June - August)",
     "Able to attend mandatory in-person retreat sessions",
-    "Willing to commit 10-15 hours per week to program activities"
+    "Willing to commit time each week to program activities",
   ];
 
   return (
     <>
       <Helmet>
         <title>Freedom Summer Leadership Program | Liberation Caucus</title>
-        <meta name="description" content="Join the Freedom Summer Leadership Program - training the next generation of Black political leaders, organizers, and change-makers committed to liberation and justice." />
+        <meta name="description" content="The Freedom Summer Leadership Program trains Liberation Caucus members as the next generation of Black political leaders, organizers, and change-makers committed to liberation and justice." />
       </Helmet>
 
       <Header />
       <EmailSignupPopup />
 
+      {/* Program review notice - remove once program details are reviewed and confirmed outside this site build */}
+      <div className="bg-liberation-red/90 text-liberation-cream text-sm text-center py-2 px-4">
+        Program details on this page are pending review and confirmation before publishing.
+      </div>
+
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-liberation-dark" ref={heroRef}>
+      <section className="pt-16 pb-20 bg-liberation-dark" ref={heroRef}>
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className={`animate-on-scroll-left ${heroVisible ? 'visible' : ''}`}>
@@ -115,8 +119,11 @@ const FreedomSummer = () => {
                 Freedom Summer{" "}
                 <span className="text-liberation-gold">Leadership Program</span>
               </h1>
-              <p className="text-xl text-liberation-cream/70 leading-relaxed mb-8">
-                Inspired by the historic 1964 Freedom Summer, our program trains the next generation of Black political leaders, organizers, and change-makers committed to liberation and justice.
+              <p className="text-xl text-liberation-cream/70 leading-relaxed mb-4">
+                Inspired by the historic Freedom Summer, our program trains Liberation Caucus members as the next generation of Black political leaders, organizers, and change-makers committed to liberation and justice.
+              </p>
+              <p className="text-liberation-cream/60 leading-relaxed mb-8">
+                Freedom Summer is a training program open exclusively to current Liberation Caucus members. Membership is required before you can enroll.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button
@@ -124,10 +131,10 @@ const FreedomSummer = () => {
                   className="bg-liberation-gold hover:bg-liberation-gold/90 text-liberation-dark group"
                   asChild
                 >
-                  <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
-                    Apply Now
+                  <Link to="/membership">
+                    Become a Member to Enroll
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </Link>
                 </Button>
                 <Button
                   size="lg"
@@ -135,7 +142,7 @@ const FreedomSummer = () => {
                   className="border-liberation-cream/30 text-liberation-cream hover:bg-liberation-cream/10"
                   asChild
                 >
-                  <a href="#timeline">View Timeline</a>
+                  <a href="#enrollment-process">View Enrollment Process</a>
                 </Button>
               </div>
             </div>
@@ -186,10 +193,13 @@ const FreedomSummer = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-liberation-cream mb-6">
-                Who Should Apply?
+                Who Can Enroll?
               </h2>
-              <p className="text-lg text-liberation-cream/70 mb-8">
-                We seek passionate individuals ready to deepen their commitment to Black liberation and community organizing.
+              <p className="text-lg text-liberation-cream/70 mb-2">
+                Freedom Summer enrollment is open to current Liberation Caucus members who are passionate about deepening their commitment to Black liberation and community organizing.
+              </p>
+              <p className="text-liberation-gold font-semibold mb-8">
+                Liberation Caucus membership is required to enroll.
               </p>
               <ul className="space-y-4">
                 {eligibility.map((item, index) => (
@@ -199,6 +209,13 @@ const FreedomSummer = () => {
                   </li>
                 ))}
               </ul>
+              <Button
+                variant="outline"
+                className="border-liberation-gold text-liberation-gold hover:bg-liberation-gold hover:text-liberation-dark mt-6"
+                asChild
+              >
+                <Link to="/membership">Not a member yet? Join the Caucus</Link>
+              </Button>
             </div>
             <div className="aspect-square rounded-2xl overflow-hidden">
               <img 
@@ -211,15 +228,15 @@ const FreedomSummer = () => {
         </div>
       </section>
 
-      {/* Timeline */}
-      <section id="timeline" className="py-20 bg-liberation-cream" ref={timelineRef}>
+      {/* Enrollment Process */}
+      <section id="enrollment-process" className="py-20 bg-liberation-cream" ref={timelineRef}>
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-liberation-dark mb-6">
-              Application Timeline
+              Enrollment Process
             </h2>
             <p className="text-lg text-liberation-dark/70">
-              Mark your calendar for these important dates in the Freedom Summer application process.
+              Here's how Liberation Caucus members enroll in the Freedom Summer Leadership Program.
             </p>
           </div>
 
@@ -229,16 +246,15 @@ const FreedomSummer = () => {
               <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-liberation-gold/30 hidden md:block" />
               
               <div className="space-y-8">
-                {timeline.map((item, index) => (
+                {enrollmentSteps.map((item, index) => (
                   <div 
                     key={index} 
                     className={`flex gap-6 animate-on-scroll stagger-${index + 1} ${timelineVisible ? 'visible' : ''}`}
                   >
                     <div className="hidden md:flex flex-shrink-0 w-16 h-16 bg-liberation-gold rounded-full items-center justify-center relative z-10">
-                      <Calendar className="w-6 h-6 text-liberation-dark" />
+                      <span className="text-liberation-dark font-bold text-lg">{index + 1}</span>
                     </div>
                     <div className="flex-1 bg-white p-6 rounded-xl shadow-sm">
-                      <span className="text-liberation-red font-semibold text-sm">{item.date}</span>
                       <h3 className="text-xl font-semibold text-liberation-dark mt-1 mb-2">{item.title}</h3>
                       <p className="text-liberation-dark/70">{item.description}</p>
                     </div>
@@ -290,17 +306,17 @@ const FreedomSummer = () => {
             Ready to Join the Movement?
           </h2>
           <p className="text-xl text-liberation-dark/70 mb-8 max-w-2xl mx-auto">
-            Applications are now open. Take the first step toward becoming a freedom fighter.
+            Liberation Caucus membership is the first step toward enrolling in Freedom Summer.
           </p>
           <Button
             size="lg"
             className="bg-liberation-dark hover:bg-liberation-dark/90 text-liberation-cream group"
             asChild
           >
-            <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
-              Apply for Freedom Summer
+            <Link to="/membership">
+              Become a Member to Enroll
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
+            </Link>
           </Button>
         </div>
       </section>
