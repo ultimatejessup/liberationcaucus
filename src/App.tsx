@@ -13,6 +13,9 @@ import News from "./pages/News";
 import NotFound from "./pages/NotFound";
 import Membership from "./pages/Membership";
 import Donate from "./pages/Donate";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import PurplBook from "./pages/PurplBook";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,9 @@ const App = () => (
             <Route path="/news" element={<News />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/donate" element={<Donate />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/purplbook" element={<PurplBook />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
