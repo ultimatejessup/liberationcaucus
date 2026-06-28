@@ -21,6 +21,18 @@ export interface CMSNews {
   [key: string]: string;
 }
 
+export interface CMSFactSheet {
+  Title: string;
+  Date: string;
+  Campaign: string;
+  Summary: string;
+  "File url": string;
+  "File URL": string;
+  "File type": string;
+  "Related link": string;
+  [key: string]: string;
+}
+
 async function fetchSheet<T>(sheet: string): Promise<T[]> {
   const projectUrl = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -55,6 +67,14 @@ export function useNews() {
   return useQuery({
     queryKey: ['cms', 'news'],
     queryFn: () => fetchSheet<CMSNews>('News'),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useFactSheets() {
+  return useQuery({
+    queryKey: ['cms', 'factsheets'],
+    queryFn: () => fetchSheet<CMSFactSheet>('Fact Sheets'),
     staleTime: 5 * 60 * 1000,
   });
 }
