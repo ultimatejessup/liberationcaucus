@@ -29,6 +29,7 @@ const Header = () => {
     { label: "About Us", href: "/about" },
     { label: "Events", href: "/events" },
     { label: "News", href: "/news" },
+    { label: "Fact Sheets", href: "/fact-sheets" },
     { label: "Our Network", href: "/#network" },
     { label: "Get Involved", href: "/#get-involved" },
   ];
@@ -49,7 +50,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.slice(0, 3).map((link) => (
+            {navLinks.slice(0, 4).map((link) => (
               <NavLink
                 key={link.label}
                 to={link.href}
@@ -93,7 +94,7 @@ const Header = () => {
               </NavigationMenuList>
             </NavigationMenu>
 
-            {navLinks.slice(3).map((link) =>
+            {navLinks.slice(4).map((link) =>
               link.href.startsWith("/#") ? (
                 <Link
                   key={link.label}
@@ -148,7 +149,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-liberation-gold/20">
             <nav className="flex flex-col gap-4">
-              {navLinks.slice(0, 3).map((link) => (
+              {navLinks.slice(0, 4).map((link) => (
                 <NavLink
                   key={link.label}
                   to={link.href}
@@ -194,7 +195,7 @@ const Header = () => {
                 )}
               </div>
 
-              {navLinks.slice(3).map((link) =>
+              {navLinks.slice(4).map((link) =>
                 link.href.startsWith("/#") ? (
                   <Link
                     key={link.label}
