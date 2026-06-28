@@ -36,7 +36,7 @@ const FAQ = () => {
   const membershipFAQs = [
     {
       question: "How do I become a member?",
-      answer: "You can become a member by completing our online membership form on Action Network. Membership is open to anyone who supports our mission and wants to be part of the movement for justice and equity."
+      answer: "You can become a member by completing our membership form on this website. Membership is open to anyone who supports our mission and wants to be part of the movement for justice and equity."
     },
     {
       question: "Is there a membership fee?",
@@ -59,23 +59,23 @@ const FAQ = () => {
   const programFAQs = [
     {
       question: "What is the Freedom Summer Leadership Program?",
-      answer: "The Freedom Summer Leadership Program is an intensive leadership development initiative inspired by the historic 1964 Freedom Summer. The program trains the next generation of civic leaders, organizers, and advocates through workshops, mentorship, and hands-on community organizing experience."
+      answer: "The Freedom Summer Leadership Program is an intensive leadership development initiative inspired by the historic Freedom Summer. The program trains Liberation Caucus members as the next generation of civic leaders, organizers, and advocates through workshops, mentorship, and hands-on community organizing experience. Program details are being finalized and reviewed."
     },
     {
-      question: "Who is eligible to apply for Freedom Summer?",
-      answer: "The program is open to emerging leaders aged 18-35 who are passionate about social justice and community organizing. We welcome applicants from all backgrounds who demonstrate commitment to our mission and have potential for leadership growth."
+      question: "Who is eligible to enroll in Freedom Summer?",
+      answer: "Freedom Summer enrollment is open to current Liberation Caucus members who are 18 or older and demonstrate commitment to our mission and community organizing. You must be a Liberation Caucus member to enroll — if you haven't joined yet, visit our membership page first."
     },
     {
-      question: "When does the Freedom Summer application open?",
-      answer: "Applications typically open in January for the summer program. Sign up for our email list to be notified when applications open and to receive early access to program information."
+      question: "How do I enroll in Freedom Summer?",
+      answer: "Freedom Summer uses an enrollment process rather than a competitive application. Once you're a Liberation Caucus member, you'll be able to submit your enrollment through the Freedom Summer page. Sign up for our email list to be notified when enrollment opens."
     },
     {
       question: "Is the Freedom Summer program paid?",
-      answer: "Yes, we provide stipends to program participants to ensure the program is accessible regardless of economic background. We also cover program-related expenses including training materials and some travel costs."
+      answer: "We aim to make the program accessible regardless of economic background, which may include stipends and covered program-related expenses. Final program details, including any stipend or expense coverage, are being reviewed and will be confirmed before enrollment opens."
     },
     {
       question: "What is the time commitment for Freedom Summer?",
-      answer: "The Freedom Summer Leadership Program runs for 8 weeks during the summer months. Participants should expect a full-time commitment during this period, including training sessions, community organizing work, and reflection activities."
+      answer: "Freedom Summer is an intensive program requiring a significant time commitment, including training sessions, community organizing work, and reflection activities. Specific duration and scheduling details are being finalized and will be shared with members ahead of enrollment."
     },
     {
       question: "What happens after completing the Freedom Summer program?",
