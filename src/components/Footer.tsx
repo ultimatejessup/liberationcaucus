@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Footer = () => {
@@ -17,9 +18,9 @@ const Footer = () => {
             className="bg-liberation-gold hover:bg-liberation-gold/90 text-liberation-dark font-semibold"
             asChild
           >
-            <a href="/membership">
+            <Link to="/membership">
               Become a Member
-            </a>
+            </Link>
           </Button>
         </div>
 
@@ -42,12 +43,12 @@ const Footer = () => {
           <div>
             <h4 className="text-liberation-gold font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              <li><a href="/about" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">About Us</a></li>
-              <li><a href="/events" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Events</a></li>
-              <li><a href="/news" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">News</a></li>
-              <li><a href="/freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</a></li>
-              <li><a href="/faq" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">FAQ</a></li>
-              <li><a href="/donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</a></li>
+              <li><Link to="/about" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">About Us</Link></li>
+              <li><Link to="/events" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Events</Link></li>
+              <li><Link to="/news" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">News</Link></li>
+              <li><Link to="/freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</Link></li>
+              <li><Link to="/faq" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">FAQ</Link></li>
+              <li><Link to="/donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</Link></li>
             </ul>
           </div>
 
@@ -68,8 +69,8 @@ const Footer = () => {
             © {new Date().getFullYear()} Liberation Caucus. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-liberation-cream/40 hover:text-liberation-cream/60 text-sm">Privacy Policy</a>
-            <a href="#" className="text-liberation-cream/40 hover:text-liberation-cream/60 text-sm">Terms of Service</a>
+            <Link to="/privacy-policy" className="text-liberation-cream/40 hover:text-liberation-cream/60 text-sm">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="text-liberation-cream/40 hover:text-liberation-cream/60 text-sm">Terms of Service</Link>
           </div>
         </div>
       </div>
