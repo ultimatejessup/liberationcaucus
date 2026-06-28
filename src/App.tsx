@@ -10,6 +10,7 @@ import FreedomSummer from "./pages/FreedomSummer";
 import FAQ from "./pages/FAQ";
 import Events from "./pages/Events";
 import News from "./pages/News";
+import FactSheets from "./pages/FactSheets";
 import NotFound from "./pages/NotFound";
 import Membership from "./pages/Membership";
 import Donate from "./pages/Donate";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/events" element={<Events />} />
             <Route path="/news" element={<News />} />
+            <Route path="/fact-sheets" element={<FactSheets />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/donate" element={<Donate />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
