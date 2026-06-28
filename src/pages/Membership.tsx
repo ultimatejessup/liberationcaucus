@@ -10,24 +10,41 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { z } from "zod";
+
+const membershipSchema = z.object({
+  firstName: z.string().trim().min(1, "First name is required").max(100),
+  lastName: z.string().trim().min(1, "Last name is required").max(100),
+  email: z.string().trim().email("Please enter a valid email").max(255),
+  mobile: z.string().trim().max(20).optional().or(z.literal("")),
+  zipCode: z
+    .string()
+    .trim()
+    .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid 5-digit zip code"),
+  precinctLeader: z.string().trim().max(200).optional().or(z.literal("")),
+  committees: z.array(z.string()),
+  councils: z.array(z.string()),
+});
 
 const COMMITTEES = [
   "Rules, Bylaws and Policy",
   "Membership",
   "Finance",
   "Operations",
-  "Civic Engagement",
+  "Programs and Education",
+  "Political Action",
 ];
 
 const COUNCILS = [
-  "Small Business",
-  "Womens",
-  "Mens",
-  "Faith",
-  "LGBTQ",
-  "Technology",
-  "Youth",
+  "Young Adults",
   "Democracy",
+  "Technology",
+  "Women's",
+  "Armed Services",
+  "Small Business",
+  "Faith",
+  "Men's",
+  "LGBTQ",
 ];
 
 const BENEFITS = [
@@ -74,17 +91,48 @@ const Membership = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email || !form.zipCode) {
-      toast({ title: "Please fill in all required fields.", variant: "destructive" });
+
+    const result = membershipSchema.safeParse(form);
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      toast({ title: firstError?.message || "Please check the form for errors.", variant: "destructive" });
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const projectUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(`${projectUrl}/functions/v1/membership-form`, {
+        method: "POST",
+        headers: {
+          apikey: anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(result.data),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit");
+      }
+
       setSubmitted(true);
-    }, 800);
+    } catch (error) {
+      console.error("Membership submission error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "We couldn't submit your membership form. Please try again, or email us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
