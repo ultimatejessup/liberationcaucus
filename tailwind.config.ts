@@ -53,6 +53,8 @@ export default {
           green: "hsl(var(--liberation-green))",
           dark: "hsl(var(--liberation-dark))",
           cream: "hsl(var(--liberation-cream))",
+          purple: "hsl(var(--liberation-purple))",
+          orange: "hsl(var(--liberation-orange))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
