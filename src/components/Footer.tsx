@@ -46,6 +46,7 @@ const Footer = () => {
               <li><Link to="/about" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">About Us</Link></li>
               <li><Link to="/events" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Events</Link></li>
               <li><Link to="/news" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">News</Link></li>
+              <li><Link to="/fact-sheets" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Fact Sheets</Link></li>
               <li><Link to="/freedom-summer" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Freedom Summer</Link></li>
               <li><Link to="/faq" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">FAQ</Link></li>
               <li><Link to="/donate" className="text-liberation-cream/60 hover:text-liberation-cream transition-colors">Donate</Link></li>
