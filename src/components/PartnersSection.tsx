@@ -3,16 +3,14 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 const PartnersSection = () => {
   const { ref, isVisible } = useScrollAnimation();
   
-  // Placeholder partner organizations - these would be replaced with actual logos
+  // TODO: Replace with confirmed Liberation Caucus partner organizations and logos.
+  // Do not list real organization names here until each partnership is confirmed —
+  // publicly implying an affiliation that hasn't been agreed to is a reputational risk.
   const partners = [
-    { name: "Black Voters Matter", initials: "BVM" },
-    { name: "Color of Change", initials: "COC" },
-    { name: "Movement for Black Lives", initials: "M4BL" },
-    { name: "NAACP", initials: "NAACP" },
-    { name: "National Urban League", initials: "NUL" },
-    { name: "Black Alliance for Just Immigration", initials: "BAJI" },
-    { name: "Dream Defenders", initials: "DD" },
-    { name: "Until Freedom", initials: "UF" },
+    { name: "Partner Organization", initials: "P1" },
+    { name: "Partner Organization", initials: "P2" },
+    { name: "Partner Organization", initials: "P3" },
+    { name: "Partner Organization", initials: "P4" },
   ];
 
   return (
