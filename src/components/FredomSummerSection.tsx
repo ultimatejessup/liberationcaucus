@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, BookOpen, ArrowRight } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
@@ -76,10 +77,10 @@ const FredomSummerSection = () => {
                 className="bg-liberation-dark hover:bg-liberation-dark/90 text-liberation-cream group"
                 asChild
               >
-                <a href="/freedom-summer">
+                <Link to="/freedom-summer">
                   Learn More
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </a>
+                </Link>
               </Button>
               <Button
                 size="lg"
@@ -87,9 +88,9 @@ const FredomSummerSection = () => {
                 className="border-liberation-dark text-liberation-dark hover:bg-liberation-dark hover:text-liberation-cream"
                 asChild
               >
-                <a href="https://actionnetwork.org/forms/liberation-caucus-membership-form" target="_blank" rel="noopener noreferrer">
-                  Apply Now
-                </a>
+                <Link to="/membership">
+                  Become a Member to Enroll
+                </Link>
               </Button>
             </div>
           </div>
