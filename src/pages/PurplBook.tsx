@@ -113,7 +113,7 @@ const PurplBook = () => {
   const [filter, setFilter] = useState<Level>("All");
   const [search, setSearch] = useState("");
 
-  const organizations = data?.organizations ?? [];
+  const organizations = useMemo(() => data?.organizations ?? [], [data?.organizations]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { All: organizations.length };
