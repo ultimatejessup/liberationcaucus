@@ -12,5 +12,11 @@ verify_jwt = false
 [functions.purplbook-directory]
 verify_jwt = false
 
+[functions.policy-library]
+verify_jwt = false
+
+[functions.utility-rate-tracker]
+verify_jwt = false
+
 [functions.mailchimp-subscribe]
 verify_jwt = false
