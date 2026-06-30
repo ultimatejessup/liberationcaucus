@@ -10,13 +10,15 @@ import FreedomSummer from "./pages/FreedomSummer";
 import FAQ from "./pages/FAQ";
 import Events from "./pages/Events";
 import News from "./pages/News";
-import FactSheets from "./pages/FactSheets";
+import PolicyLibrary from "./pages/PolicyLibrary";
 import NotFound from "./pages/NotFound";
 import Membership from "./pages/Membership";
 import Donate from "./pages/Donate";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import PurplBook from "./pages/PurplBook";
+import Councils from "./pages/Councils";
+import UtilityRateTracker from "./pages/UtilityRateTracker";
 
 const queryClient = new QueryClient();
 
@@ -34,12 +36,14 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/events" element={<Events />} />
             <Route path="/news" element={<News />} />
-            <Route path="/fact-sheets" element={<FactSheets />} />
+            <Route path="/policy-library" element={<PolicyLibrary />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/donate" element={<Donate />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/purplbook" element={<PurplBook />} />
+            <Route path="/councils" element={<Councils />} />
+            <Route path="/utility-rate-tracker" element={<UtilityRateTracker />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
