@@ -5,6 +5,14 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Old Fact Sheets page, replaced by Policy Library. Must come before the
+# catch-all SPA redirect below, since Netlify matches redirects in order
+# and stops at the first match.
+[[redirects]]
+  from = "/fact-sheets"
+  to = "/policy-library"
+  status = 301
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
