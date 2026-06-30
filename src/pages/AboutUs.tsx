@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ContactForm from "@/components/ContactForm";
 import {
   Accordion,
   AccordionContent,
@@ -356,6 +357,8 @@ const AboutUs = () => {
             </div>
           </div>
         </section>
+
+        <ContactForm />
       </main>
 
       <Footer />
