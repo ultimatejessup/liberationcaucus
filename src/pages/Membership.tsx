@@ -169,6 +169,23 @@ const Membership = () => {
             </p>
           </div>
 
+          {/* Membership requirements, per Liberation Caucus bylaws Section I */}
+          <div className="max-w-3xl mx-auto mb-12 rounded-xl border border-liberation-gold/20 bg-liberation-cream/5 p-6">
+            <h2 className="text-liberation-gold font-semibold text-sm tracking-widest uppercase mb-3">
+              Membership Requirements
+            </h2>
+            <p className="text-liberation-cream/70 text-sm leading-relaxed mb-3">
+              Membership is open to individuals from Black and African diaspora communities, or
+              allies for the liberty of the Black and African diaspora community in the United
+              States, its territories, and allies.
+            </p>
+            <p className="text-liberation-cream/70 text-sm leading-relaxed">
+              You must also meet at least one of the following: be 16 years of age or older,
+              be an active, registered voter in your state, or pay annual membership fees to the
+              Caucus.
+            </p>
+          </div>
+
           {/* Benefits strip */}
           <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
             {BENEFITS.map((b, i) => (
