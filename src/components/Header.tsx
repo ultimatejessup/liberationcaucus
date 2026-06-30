@@ -9,7 +9,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Menu, X, ScrollText, ChevronDown } from "lucide-react";
+import { Menu, X, ScrollText, ChevronDown, UserPlus, Layers, BookOpen, Zap } from "lucide-react";
 
 const tools = [
   {
@@ -18,20 +18,45 @@ const tools = [
     description: "Black caucus legislative directory — federal, state, and local.",
     icon: ScrollText,
   },
-  // Next: Michigan Utility Rate Tracker — add here once its route is built.
+  {
+    label: "Policy Library",
+    href: "/policy-library",
+    description: "Fact sheets and policy documents, organized by campaign.",
+    icon: BookOpen,
+  },
+  {
+    label: "Utility Rate Tracker",
+    href: "/utility-rate-tracker",
+    description: "Michigan MPSC rate cases and energy burden data.",
+    icon: Zap,
+  },
+];
+
+const membershipLinks = [
+  {
+    label: "Join Now",
+    href: "/membership",
+    description: "Become a Liberation Caucus member.",
+    icon: UserPlus,
+  },
+  {
+    label: "Councils",
+    href: "/councils",
+    description: "Explore the Caucus's nine standing councils.",
+    icon: Layers,
+  },
 ];
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
+  const [isMobileMembershipOpen, setIsMobileMembershipOpen] = useState(false);
 
   const navLinks = [
     { label: "About Us", href: "/about" },
     { label: "Events", href: "/events" },
     { label: "News", href: "/news" },
-    { label: "Fact Sheets", href: "/fact-sheets" },
     { label: "Our Network", href: "/#network" },
-    { label: "Get Involved", href: "/#get-involved" },
   ];
 
   return (
@@ -50,22 +75,32 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.slice(0, 4).map((link) => (
-              <NavLink
-                key={link.label}
-                to={link.href}
-                className={({ isActive }) =>
-                  `text-sm font-medium transition-colors ${
-                    isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+            {navLinks.map((link) =>
+              link.href.startsWith("/#") ? (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="text-liberation-cream/80 hover:text-liberation-gold transition-colors text-sm font-medium"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <NavLink
+                  key={link.label}
+                  to={link.href}
+                  className={({ isActive }) =>
+                    `text-sm font-medium transition-colors ${
+                      isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              )
+            )}
 
             <NavigationMenu>
-              <NavigationMenuList>
+              <NavigationMenuList className="gap-8">
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="h-auto bg-transparent p-0 text-sm font-medium text-liberation-cream/80 hover:bg-transparent hover:text-liberation-gold focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-liberation-gold">
                     Tools
@@ -91,45 +126,38 @@ const Header = () => {
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="h-auto bg-transparent p-0 text-sm font-medium text-liberation-cream/80 hover:bg-transparent hover:text-liberation-gold focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-liberation-gold">
+                    Membership
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="w-72 gap-1 p-2 bg-liberation-dark border border-liberation-gold/20">
+                      {membershipLinks.map((item) => (
+                        <li key={item.href}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              to={item.href}
+                              className="flex flex-col gap-1 rounded-md p-3 transition-colors hover:bg-liberation-gold/10"
+                            >
+                              <span className="flex items-center gap-2 text-sm font-semibold text-liberation-cream">
+                                <item.icon className="h-4 w-4 text-liberation-gold" />
+                                {item.label}
+                              </span>
+                              <span className="text-xs text-liberation-cream/60">{item.description}</span>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
-
-            {navLinks.slice(4).map((link) =>
-              link.href.startsWith("/#") ? (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className="text-liberation-cream/80 hover:text-liberation-gold transition-colors text-sm font-medium"
-                >
-                  {link.label}
-                </Link>
-              ) : (
-                <NavLink
-                  key={link.label}
-                  to={link.href}
-                  className={({ isActive }) =>
-                    `text-sm font-medium transition-colors ${
-                      isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
-                    }`
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              )
-            )}
           </nav>
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="border-liberation-gold text-liberation-gold hover:bg-liberation-gold hover:text-liberation-dark"
-              asChild
-            >
-              <Link to="/membership">
-                Join Us
-              </Link>
-            </Button>
             <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream" asChild>
               <Link to="/donate">Donate</Link>
             </Button>
@@ -149,20 +177,31 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-liberation-gold/20">
             <nav className="flex flex-col gap-4">
-              {navLinks.slice(0, 4).map((link) => (
-                <NavLink
-                  key={link.label}
-                  to={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `font-medium transition-colors ${
-                      isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
-                    }`
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
+              {navLinks.map((link) =>
+                link.href.startsWith("/#") ? (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-liberation-cream/80 hover:text-liberation-gold transition-colors font-medium"
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <NavLink
+                    key={link.label}
+                    to={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `font-medium transition-colors ${
+                        isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
+                      }`
+                    }
+                  >
+                    {link.label}
+                  </NavLink>
+                )
+              )}
 
               <div>
                 <button
@@ -195,41 +234,38 @@ const Header = () => {
                 )}
               </div>
 
-              {navLinks.slice(4).map((link) =>
-                link.href.startsWith("/#") ? (
-                  <Link
-                    key={link.label}
-                    to={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-liberation-cream/80 hover:text-liberation-gold transition-colors font-medium"
-                  >
-                    {link.label}
-                  </Link>
-                ) : (
-                  <NavLink
-                    key={link.label}
-                    to={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `font-medium transition-colors ${
-                        isActive ? "text-liberation-gold" : "text-liberation-cream/80 hover:text-liberation-gold"
-                      }`
-                    }
-                  >
-                    {link.label}
-                  </NavLink>
-                )
-              )}
-              <div className="flex flex-col gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  className="border-liberation-gold text-liberation-gold hover:bg-liberation-gold hover:text-liberation-dark w-full"
-                  asChild
+              <div>
+                <button
+                  onClick={() => setIsMobileMembershipOpen(!isMobileMembershipOpen)}
+                  className="flex w-full items-center justify-between font-medium text-liberation-cream/80 hover:text-liberation-gold transition-colors"
+                  aria-expanded={isMobileMembershipOpen}
                 >
-                  <Link to="/membership" onClick={() => setIsMenuOpen(false)}>
-                    Join Us
-                  </Link>
-                </Button>
+                  Membership
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${isMobileMembershipOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {isMobileMembershipOpen && (
+                  <div className="mt-3 flex flex-col gap-3 border-l border-liberation-gold/20 pl-4">
+                    {membershipLinks.map((item) => (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          setIsMobileMembershipOpen(false);
+                        }}
+                        className="flex items-center gap-2 text-sm text-liberation-cream/70 hover:text-liberation-gold transition-colors"
+                      >
+                        <item.icon className="h-4 w-4 text-liberation-gold" />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 pt-4">
                 <Button className="bg-liberation-red hover:bg-liberation-red/90 text-liberation-cream w-full" asChild>
                   <Link to="/donate" onClick={() => setIsMenuOpen(false)}>Donate</Link>
                 </Button>
