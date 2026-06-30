@@ -5,26 +5,42 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const POPUP_COMPLETED_KEY = "liberation-caucus-popup-completed";
+const POPUP_DISMISSED_KEY = "liberation-caucus-popup-dismissed-at";
+const RESHOW_AFTER_DISMISS_DAYS = 14;
+
 const EmailSignupPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitFailed, setSubmitFailed] = useState(false);
 
   useEffect(() => {
-    const hasSeenPopup = localStorage.getItem("liberation-caucus-popup-seen");
-    if (!hasSeenPopup) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 2000);
-      return () => clearTimeout(timer);
+    // Never show again once the person has actually completed the form.
+    const hasCompleted = localStorage.getItem(POPUP_COMPLETED_KEY);
+    if (hasCompleted) return;
+
+    // If they dismissed without completing, wait before showing it again
+    // rather than reappearing on every single visit.
+    const dismissedAt = localStorage.getItem(POPUP_DISMISSED_KEY);
+    if (dismissedAt) {
+      const daysSinceDismiss = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+      if (daysSinceDismiss < RESHOW_AFTER_DISMISS_DAYS) return;
     }
+
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    localStorage.setItem("liberation-caucus-popup-seen", "true");
+    if (!isSubmitted) {
+      localStorage.setItem(POPUP_DISMISSED_KEY, String(Date.now()));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +48,7 @@ const EmailSignupPopup = () => {
     if (!email) return;
     
     setIsSubmitting(true);
+    setSubmitFailed(false);
     
     try {
       const { data, error } = await supabase.functions.invoke('mailchimp-subscribe', {
@@ -41,19 +58,18 @@ const EmailSignupPopup = () => {
       if (error) throw error;
       
       setIsSubmitted(true);
-      localStorage.setItem("liberation-caucus-popup-seen", "true");
+      localStorage.setItem(POPUP_COMPLETED_KEY, "true");
+      localStorage.removeItem(POPUP_DISMISSED_KEY);
       
       setTimeout(() => {
         setIsOpen(false);
       }, 2000);
     } catch (error) {
       console.error("Error subscribing to Mailchimp:", error);
-      setIsSubmitted(true);
-      localStorage.setItem("liberation-caucus-popup-seen", "true");
-      
-      setTimeout(() => {
-        setIsOpen(false);
-      }, 2000);
+      // Do not claim success when the subscription actually failed — let the
+      // person know and leave the form open so they can retry, instead of
+      // silently marking the popup as completed.
+      setSubmitFailed(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -105,6 +121,11 @@ const EmailSignupPopup = () => {
             >
               {isSubmitting ? "Signing Up..." : "Get Updates"}
             </Button>
+            {submitFailed && (
+              <p className="text-sm text-destructive text-center">
+                Something went wrong. Please try again.
+              </p>
+            )}
             <p className="text-xs text-liberation-cream/60 text-center">
               We respect your privacy. Unsubscribe at any time.
             </p>
