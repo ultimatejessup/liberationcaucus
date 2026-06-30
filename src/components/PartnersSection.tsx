@@ -1,16 +1,28 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { ExternalLink } from "lucide-react";
 
 const PartnersSection = () => {
   const { ref, isVisible } = useScrollAnimation();
-  
-  // TODO: Replace with confirmed Liberation Caucus partner organizations and logos.
-  // Do not list real organization names here until each partnership is confirmed —
-  // publicly implying an affiliation that hasn't been agreed to is a reputational risk.
+
   const partners = [
-    { name: "Partner Organization", initials: "P1" },
-    { name: "Partner Organization", initials: "P2" },
-    { name: "Partner Organization", initials: "P3" },
-    { name: "Partner Organization", initials: "P4" },
+    {
+      name: "Official Democratic Black Caucus of Macomb County",
+      initials: "ODBCMC",
+      description: "Black caucus of the Macomb County Democratic Committee, Michigan.",
+      url: "https://officialdemblackcaucusmacomb.weebly.com/",
+    },
+    {
+      name: "WCDP Black Caucus",
+      initials: "WCDP",
+      description: "Washtenaw County Democratic Party's Black Caucus, Michigan.",
+      url: "https://www.wcdpblackcaucus.org/",
+    },
+    {
+      name: "Working Families Party — Michigan",
+      initials: "WFP",
+      description: "Michigan chapter of the national Working Families Party.",
+      url: "https://workingfamilies.org/state/michigan/",
+    },
   ];
 
   return (
@@ -27,21 +39,30 @@ const PartnersSection = () => {
         </div>
 
         {/* Partners Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {partners.map((partner, index) => (
-            <div
+            <a
               key={index}
-              className={`group bg-liberation-dark/5 hover:bg-liberation-dark rounded-2xl p-8 flex flex-col items-center justify-center aspect-square transition-all duration-300 cursor-pointer animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''}`}
+              href={partner.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group bg-liberation-dark/5 hover:bg-liberation-dark rounded-2xl p-8 flex flex-col items-center text-center transition-all duration-300 animate-on-scroll-scale stagger-${index + 1} ${isVisible ? 'visible' : ''}`}
             >
               <div className="w-16 h-16 bg-liberation-gold/20 group-hover:bg-liberation-gold rounded-full flex items-center justify-center mb-4 transition-colors">
-                <span className="text-liberation-dark group-hover:text-liberation-dark font-bold text-sm">
+                <span className="text-liberation-dark group-hover:text-liberation-dark font-bold text-xs">
                   {partner.initials}
                 </span>
               </div>
-              <span className="text-liberation-dark/70 group-hover:text-liberation-cream text-sm text-center font-medium transition-colors">
+              <span className="text-liberation-dark group-hover:text-liberation-cream font-semibold transition-colors">
                 {partner.name}
               </span>
-            </div>
+              <span className="text-liberation-dark/60 group-hover:text-liberation-cream/70 text-sm mt-2 transition-colors">
+                {partner.description}
+              </span>
+              <span className="text-liberation-red group-hover:text-liberation-gold text-xs font-semibold mt-4 inline-flex items-center gap-1 transition-colors">
+                Visit website <ExternalLink className="w-3 h-3" />
+              </span>
+            </a>
           ))}
         </div>
 
