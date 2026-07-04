@@ -1,9 +1,8 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -909,8 +908,7 @@ const PurplBook = () => {
 
   // Build the state map for Atlas + Ledger from the live org/member data
   const stateMap = useMemo(() => buildStateMap(organizations as unknown as OrgCard[]), [organizations]);
-  const maxMembers = useMemo(() =>
-    Math.max(0, ...Object.values(stateMap).map(s => s.total)), [stateMap]);
+
 
   // Reset open state when switching views
   useEffect(() => { setOpenState(null); }, [view]);
