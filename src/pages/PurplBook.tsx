@@ -106,23 +106,38 @@ interface StateEntry {
 // Uses member.state directly — no text parsing. Requires the edge function
 // to populate state and level per member (updated in purplbook-directory).
 
+// Uses the synthetic '__all_members__' org returned by the edge function,
+// which contains every member record regardless of whether their
+// Organization linked field is populated. This is the workaround for the
+// linked-record gap; once that gap is repaired the same logic still works.
 function buildStateMap(orgs: PurplbookOrg[]): Record<string, StateEntry> {
   const map: Record<string, StateEntry> = {};
 
-  for (const org of orgs) {
-    for (const member of org.members) {
-      const st = member.state?.trim();
-      if (!st || !ALL_STATES.includes(st)) continue;
+  // Prefer the catch-all org if present; fall back to iterating all orgs
+  const catchAll = orgs.find(o => o.id === '__all_members__');
+  const members = catchAll
+    ? catchAll.members
+    : orgs.flatMap(o => o.members);
 
-      if (!map[st]) map[st] = { total: 0, byLevel: {} };
+  // Deduplicate by name+state so members in multiple orgs aren't double-counted
+  const seen = new Set<string>();
 
-      const raw = member.level?.trim() as GovLevel;
-      const lvl: GovLevel = LEVEL_ORDER.includes(raw) ? raw : "State";
+  for (const member of members) {
+    const st = member.state?.trim();
+    if (!st || !ALL_STATES.includes(st)) continue;
 
-      if (!map[st].byLevel[lvl]) map[st].byLevel[lvl] = [];
-      map[st].byLevel[lvl]!.push(member);
-      map[st].total++;
-    }
+    const key = `${member.name}|${st}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    if (!map[st]) map[st] = { total: 0, byLevel: {} };
+
+    const raw = member.level?.trim() as GovLevel;
+    const lvl: GovLevel = LEVEL_ORDER.includes(raw) ? raw : "State";
+
+    if (!map[st].byLevel[lvl]) map[st].byLevel[lvl] = [];
+    map[st].byLevel[lvl]!.push(member);
+    map[st].total++;
   }
 
   return map;
