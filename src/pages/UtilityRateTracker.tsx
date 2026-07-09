@@ -21,6 +21,8 @@ import {
   type CommissionMeeting,
 } from "@/hooks/useUtilityRateTracker";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import UtilityCountyMap from "@/components/UtilityCountyMap";
+import { Map } from "lucide-react"; // add to the existing lucide-react import line
 
 function StatBlock({ label, value }: { label: string; value: string | number | null }) {
   if (value === null || value === "") return null;
@@ -271,6 +273,12 @@ const UtilityRateTracker = () => {
                   >
                     <Calendar className="w-4 h-4 mr-1.5" /> Commission Meetings
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="county-map"
+                    className="data-[state=active]:bg-liberation-gold data-[state=active]:text-liberation-dark text-liberation-cream/70"
+                  >
+                    <Map className="w-4 h-4 mr-1.5" /> County Map
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="rate-actions" className="space-y-4">
@@ -344,6 +352,9 @@ const UtilityRateTracker = () => {
                     .map((meeting) => (
                       <MeetingCard key={meeting.id} meeting={meeting} />
                     ))}
+                </TabsContent>
+                <TabsContent value="county-map">
+                  <UtilityCountyMap />
                 </TabsContent>
               </Tabs>
             )}
