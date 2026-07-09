@@ -5,7 +5,7 @@ import type { Layer, PathOptions } from "leaflet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Wifi, Droplets } from "lucide-react";
 import { useCountyMetrics, type CountyMetric } from "@/hooks/useUtilityRateTracker";
-import michiganCountiesGeoJson from "@/data/michigan-counties.geojson";
+import michiganCountiesGeoJson from "@/data/michigan-counties.json";
 
 // ── Color ramps ──────────────────────────────────────────────────────────
 // Both ramps run from the site's forest-green (good/affordable/available) to
