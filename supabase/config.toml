@@ -19,4 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.mailchimp-subscribe]
+verify_jwt = false 
+ 
+[functions.michigan-essential-services]
 verify_jwt = false
