@@ -7,9 +7,15 @@ export interface PolicyFile {
   size: number;
 }
 
-export interface PolicyCampaign {
-  id: string;
-  name: string;
+export interface PolicyLegislation {
+  id: number;
+  billNumber: string;
+  title: string;
+  status: string;
+  chamber: string;
+  session: string;
+  introducedDate: string;
+  sourceUrl: string;
 }
 
 export interface PolicyFactSheet {
@@ -18,12 +24,19 @@ export interface PolicyFactSheet {
   summary: string;
   date: string;
   relatedLink: string;
-  campaigns: PolicyCampaign[];
   files: PolicyFile[];
 }
 
-interface PolicyLibraryResponse {
+export interface PolicyCampaign {
+  id: number;
+  name: string;
+  description: string;
+  active: boolean;
+  legislation: PolicyLegislation[];
   factSheets: PolicyFactSheet[];
+}
+
+interface PolicyLibraryResponse {
   campaigns: PolicyCampaign[];
   fetchedAt: string;
 }
@@ -50,10 +63,11 @@ export function usePolicyLibrary() {
   return useQuery({
     queryKey: ["policy-library"],
     queryFn: fetchPolicyLibrary,
-    // Short staleTime: Airtable's API-obtained attachment URLs expire after
-    // ~2 hours, so this refetches often enough that a person browsing the
-    // page always has a working download link, without hitting Airtable on
-    // every render.
+    // Short staleTime: fact sheet attachment URLs are sourced live from
+    // Airtable on every function call and Airtable's API-obtained
+    // attachment URLs expire after ~2 hours, so this refetches often
+    // enough that a person browsing the page always has a working
+    // download link, without hitting Airtable/Postgres on every render.
     staleTime: 5 * 60 * 1000,
   });
 }
