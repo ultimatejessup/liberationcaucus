@@ -82,7 +82,6 @@ const ABBR: Record<string, string> = {
 
 const GRID: Record<string, [number, number]> = {
   Alaska:[0,0], Maine:[0,11],
-  Guam:[0,1], "American Samoa":[0,2], "Northern Mariana Islands":[0,3],
   Vermont:[1,10],"New Hampshire":[1,11],Washington:[1,1],Idaho:[1,2],Montana:[1,3],
   "North Dakota":[1,4],Minnesota:[1,5],Wisconsin:[1,6],Michigan:[1,7],"New York":[1,9],
   Massachusetts:[2,11],Oregon:[2,1],Nevada:[2,2],Wyoming:[2,3],"South Dakota":[2,4],
@@ -93,7 +92,9 @@ const GRID: Record<string, [number, number]> = {
   Arkansas:[4,6],Tennessee:[4,7],"North Carolina":[4,8],"South Carolina":[4.5,9],
   Hawaii:[5,0],Texas:[5,4],Louisiana:[5,6],Mississippi:[5,7],Alabama:[5,8],Georgia:[5,9],
   "District of Columbia":[3.5,9.4],Florida:[6,9],
+  // Territories cluster in the lower-right quadrant, southeast of Florida.
   "Puerto Rico":[7,9], "U.S. Virgin Islands":[7,10],
+  Guam:[8,9], "American Samoa":[8,10], "Northern Mariana Islands":[8,11],
 };
 
 const CELL = 56, GAP = 4;
