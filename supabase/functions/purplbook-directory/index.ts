@@ -81,7 +81,7 @@ serve(async (req) => {
           id, name, level, focus_area, founded, website, contact, phone, current_chair, membership_size,
           mission_summary, last_verified,
           geo_states ( abbreviation ),
-          members ( id, name, title_role, district_jurisdiction, serving_since, geo_states ( abbreviation ) )
+          members ( id, name, title_role, level, district_jurisdiction, serving_since, website, geo_states ( name, abbreviation ) )
         `
         )
         .order("name"),
@@ -120,9 +120,15 @@ serve(async (req) => {
       members: (org.members ?? []).map((m: any) => ({
         name: m.name ?? "",
         title: m.title_role ?? "",
-        state: m.geo_states?.abbreviation ?? "",
+        // PurplBook.tsx's ALL_STATES / buildStateMap expect the FULL state
+        // name ("Michigan"), not the postal abbreviation -- ALL_STATES has
+        // no abbreviations in it at all, so `state: "MI"` was silently
+        // failing the `ALL_STATES.includes(st)` check for every member.
+        state: m.geo_states?.name ?? "",
         district: m.district_jurisdiction || m.geo_states?.abbreviation || "",
         since: m.serving_since ?? null,
+        level: m.level ?? "",
+        website: m.website ?? "",
       })),
     }));
 
