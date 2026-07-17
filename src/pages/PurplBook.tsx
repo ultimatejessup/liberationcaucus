@@ -93,8 +93,8 @@ const GRID: Record<string, [number, number]> = {
   Hawaii:[5,0],Texas:[5,4],Louisiana:[5,6],Mississippi:[5,7],Alabama:[5,8],Georgia:[5,9],
   "District of Columbia":[3.5,9.4],Florida:[6,9],
   // Territories cluster in the lower-right quadrant, southeast of Florida.
-  "Puerto Rico":[7,9], "U.S. Virgin Islands":[7,10],
-  Guam:[8,9], "American Samoa":[8,10], "Northern Mariana Islands":[8,11],
+  "Puerto Rico":[8,10], "U.S. Virgin Islands":[8,11],
+  Guam:[9,10], "American Samoa":[9,11], "Northern Mariana Islands":[9,12],
 };
 
 const CELL = 56, GAP = 4;
