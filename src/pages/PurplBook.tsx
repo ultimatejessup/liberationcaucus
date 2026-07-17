@@ -62,6 +62,7 @@ const ALL_STATES = [
   "Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina",
   "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington",
   "West Virginia","Wisconsin","Wyoming",
+  "Puerto Rico","U.S. Virgin Islands","Guam","American Samoa","Northern Mariana Islands",
 ];
 
 const ABBR: Record<string, string> = {
@@ -75,10 +76,13 @@ const ABBR: Record<string, string> = {
   Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
   Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA",
   "West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY",
+  "Puerto Rico":"PR","U.S. Virgin Islands":"VI",Guam:"GU","American Samoa":"AS",
+  "Northern Mariana Islands":"MP",
 };
 
 const GRID: Record<string, [number, number]> = {
   Alaska:[0,0], Maine:[0,11],
+  Guam:[0,1], "American Samoa":[0,2], "Northern Mariana Islands":[0,3],
   Vermont:[1,10],"New Hampshire":[1,11],Washington:[1,1],Idaho:[1,2],Montana:[1,3],
   "North Dakota":[1,4],Minnesota:[1,5],Wisconsin:[1,6],Michigan:[1,7],"New York":[1,9],
   Massachusetts:[2,11],Oregon:[2,1],Nevada:[2,2],Wyoming:[2,3],"South Dakota":[2,4],
@@ -89,6 +93,7 @@ const GRID: Record<string, [number, number]> = {
   Arkansas:[4,6],Tennessee:[4,7],"North Carolina":[4,8],"South Carolina":[4.5,9],
   Hawaii:[5,0],Texas:[5,4],Louisiana:[5,6],Mississippi:[5,7],Alabama:[5,8],Georgia:[5,9],
   "District of Columbia":[3.5,9.4],Florida:[6,9],
+  "Puerto Rico":[7,9], "U.S. Virgin Islands":[7,10],
 };
 
 const CELL = 56, GAP = 4;
