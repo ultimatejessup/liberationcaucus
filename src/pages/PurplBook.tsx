@@ -93,8 +93,8 @@ const GRID: Record<string, [number, number]> = {
   Hawaii:[5,0],Texas:[5,4],Louisiana:[5,6],Mississippi:[5,7],Alabama:[5,8],Georgia:[5,9],
   "District of Columbia":[3.5,9.4],Florida:[6,9],
   // Territories cluster in the lower-right quadrant, southeast of Florida.
-  "Puerto Rico":[8,10], "U.S. Virgin Islands":[8,11],
-  Guam:[9,10], "American Samoa":[9,11], "Northern Mariana Islands":[9,12],
+  "Puerto Rico":[7,11], "U.S. Virgin Islands":[7,12],
+  Guam:[8,11], "American Samoa":[8,12], "Northern Mariana Islands":[8,13],
 };
 
 const CELL = 56, GAP = 4;
@@ -316,13 +316,21 @@ function AtlasView({
           const isZero = total === 0;
           const dimmed = q && !filteredSet.has(name);
           const isOpen = openState === name;
+          const isHovered = hovered === name;
           const x = c * (CELL + GAP);
           const y = r * (CELL + GAP);
+          const cx = x + CELL / 2;
+          const cy = y + CELL / 2;
           return (
             <g
               key={name}
               opacity={dimmed ? 0.2 : 1}
-              style={{ cursor: "pointer" }}
+              style={{
+                cursor: "pointer",
+                transform: isHovered ? "scale(1.1)" : "scale(1)",
+                transformOrigin: `${cx}px ${cy}px`,
+                transition: "transform 0.15s ease",
+              }}
               onClick={() => setOpenState(isOpen ? null : name)}
               onMouseEnter={() => setHovered(name)}
               onMouseLeave={() => setHovered(null)}
@@ -391,9 +399,25 @@ function AtlasView({
             onClose={() => setOpenState(null)}
           />
         ) : (
-          <p className="text-left text-xs text-gray-400 py-6">
-            Click any tile above to open its roster here.
-          </p>
+          <div className="divide-y divide-gray-100">
+            {ALL_STATES.map(name => {
+              const total = stateMap[name]?.total ?? 0;
+              return (
+                <button
+                  key={name}
+                  onClick={() => setOpenState(name)}
+                  className="w-full flex items-center justify-between gap-3 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors px-1"
+                >
+                  <span className={total === 0 ? "text-gray-400" : "text-gray-800 font-medium"}>
+                    {name}
+                  </span>
+                  <span className={`text-xs font-mono ${total === 0 ? "text-gray-300" : "text-gray-500"}`}>
+                    {total}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
