@@ -1,0 +1,648 @@
+import { useMemo, useState, type ReactNode } from "react";
+import { Wifi, Droplets, Zap, Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useMichiganEssentialServices,
+  aggregateByCounty,
+  groupPlacesByCounty,
+  type CountyEntry,
+  type PlaceEntry,
+  type WaterSewageRateEntry,
+  type BroadbandRateEntry,
+} from "@/hooks/useMichiganEssentialServices";
+import { useEnergyBurdenByCounty, type EnergyBurdenEntry } from "@/hooks/useEnergyBurdenByCounty";
+
+// ── Grid layout ──────────────────────────────────────────────────────────────
+// Same technique as PurplBook.tsx's AtlasView: hand-derived cartogram grid,
+// plain inline SVG. Positions from real county centroids (topojson/us-atlas),
+// compressed to 27x25 with zero collisions.
+
+const GRID: Record<string, [number, number]> = {
+  Alcona: [14, 21], Alger: [5, 11], Allegan: [22, 12], Alpena: [12, 21],
+  Antrim: [12, 15], Arenac: [16, 20], Baraga: [4, 5], Barry: [22, 15],
+  Bay: [18, 20], Benzie: [14, 12], Berrien: [26, 11], Branch: [26, 16],
+  Calhoun: [24, 16], Cass: [26, 12], Charlevoix: [10, 15], Cheboygan: [10, 18],
+  Chippewa: [6, 19], Clare: [16, 16], Clinton: [21, 18], Crawford: [14, 18],
+  Delta: [9, 10], Dickinson: [8, 6], Eaton: [22, 16], Emmet: [10, 16],
+  Genesee: [21, 20], Gladwin: [16, 18], Gogebic: [5, 0], "Grand Traverse": [12, 14],
+  Gratiot: [20, 18], Hillsdale: [26, 18], Houghton: [4, 4], Huron: [18, 22],
+  Ingham: [22, 18], Ionia: [21, 16], Iosco: [15, 21], Iron: [8, 4],
+  Isabella: [19, 16], Jackson: [24, 18], Kalamazoo: [24, 14], Kalkaska: [14, 15],
+  Kent: [21, 14], Keweenaw: [0, 5], Lake: [16, 14], Lapeer: [20, 21],
+  Leelanau: [11, 14], Lenawee: [26, 19], Livingston: [22, 19], Luce: [5, 14],
+  Mackinac: [8, 16], Macomb: [22, 22], Manistee: [15, 12], Marquette: [5, 8],
+  Mason: [16, 11], Mecosta: [18, 15], Menominee: [10, 8], Midland: [19, 18],
+  Missaukee: [15, 16], Monroe: [26, 21], Montcalm: [20, 15], Montmorency: [11, 19],
+  Muskegon: [20, 12], Newaygo: [19, 14], Oakland: [22, 21], Oceana: [18, 11],
+  Ogemaw: [15, 19], Ontonagon: [4, 1], Osceola: [16, 15], Oscoda: [14, 19],
+  Otsego: [11, 18], Ottawa: [21, 12], "Presque Isle": [10, 20], Roscommon: [15, 18],
+  Saginaw: [19, 19], Sanilac: [20, 22], Schoolcraft: [8, 12], Shiawassee: [21, 19],
+  "St. Clair": [22, 24], "St. Joseph": [26, 14], Tuscola: [19, 21], "Van Buren": [24, 12],
+  Washtenaw: [24, 20], Wayne: [25, 22], Wexford: [15, 14],
+};
+
+const ALL_COUNTIES = Object.keys(GRID).sort();
+const CELL = 26, GAP = 3;
+const GRID_ROWS = Math.max(...Object.values(GRID).map(([r]) => r)) + 1;
+const GRID_COLS = Math.max(...Object.values(GRID).map(([, c]) => c)) + 1;
+
+type LayerKey = "broadband" | "water" | "energy";
+type ViewKey = "map" | "list";
+
+// Each layer has its own unit and its own "good direction" — these are
+// genuinely different metrics from the live API, not a single unified scale:
+//   broadband: availabilityPctOfZip — higher is BETTER (more coverage)
+//   water:     affordabilityRatioPct — higher is WORSE (more cost burden)
+//   energy:    medianBurdenPct for Black households specifically — higher is WORSE
+const LAYER_LABEL: Record<LayerKey, string> = {
+  broadband: "Broadband Availability",
+  water: "Water Affordability Burden",
+  energy: "Energy Burden (Black Households)",
+};
+const LAYER_UNIT_SUFFIX: Record<LayerKey, string> = {
+  broadband: "% coverage",
+  water: "% of income",
+  energy: "% of income",
+};
+const LAYER_ICON: Record<LayerKey, typeof Wifi> = {
+  broadband: Wifi,
+  water: Droplets,
+  energy: Zap,
+};
+const VIEW_LABEL: Record<ViewKey, string> = { map: "Map", list: "County List" };
+
+function tileColor(value: number | null, layer: LayerKey): string {
+  if (value === null) return "transparent";
+  // Both directions use the same lightness curve — higher magnitude always
+  // reads as more saturated/darker. What differs is the hue (green for
+  // broadband's "more coverage is better", terracotta for water/energy's
+  // "more burden is worse") and the max used to normalize t, not the curve
+  // itself. No need for a separate branch per direction.
+  const max = layer === "broadband" ? 100 : 15; // availability caps at 100%; burden ratios treated as maxed at 15%+
+  const t = Math.min(1, value / max);
+  const lightness = 85 - t * 45;
+  const hue = layer === "broadband" ? "152 34%" : "14 55%";
+  return `hsl(${hue} ${lightness}%)`;
+}
+
+function barColor(layer: LayerKey): string {
+  return layer === "broadband" ? "hsl(152 45% 40%)" : "hsl(14 55% 45%)";
+}
+
+export default function UtilityCountyCartogram() {
+  const [view, setView] = useState<ViewKey>("map");
+  const [layer, setLayer] = useState<LayerKey>("water");
+  const [openCounty, setOpenCounty] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const { data: servicesData, isLoading: servicesLoading, isError: servicesError } = useMichiganEssentialServices();
+  const { data: energyRows, isLoading: energyLoading } = useEnergyBurdenByCounty();
+
+  const isLoading = servicesLoading || energyLoading;
+  const isError = servicesError;
+
+  const countiesByName = useMemo(() => {
+    const map = new Map<string, CountyEntry>();
+    for (const c of servicesData?.counties ?? []) map.set(c.name, c);
+    return map;
+  }, [servicesData]);
+
+  const countyAggregates = useMemo(
+    () => aggregateByCounty(servicesData?.waterSewageRates ?? [], servicesData?.broadbandRates ?? []),
+    [servicesData]
+  );
+
+  const placesByCounty = useMemo(
+    () => groupPlacesByCounty(servicesData?.places ?? []),
+    [servicesData]
+  );
+
+  // Energy burden specific to Black households, matched by county name.
+  // If a county has multiple race rows, this picks the Black-households row;
+  // other races are still shown in the detail panel, just not used for the map fill.
+  const energyByCounty = useMemo(() => {
+    const map = new Map<string, EnergyBurdenEntry>();
+    for (const row of energyRows ?? []) {
+      if (row.racialGroup?.toLowerCase().includes("black")) map.set(row.geography, row);
+    }
+    return map;
+  }, [energyRows]);
+
+  const allEnergyByCountyName = useMemo(() => {
+    const map = new Map<string, EnergyBurdenEntry[]>();
+    for (const row of energyRows ?? []) {
+      if (!map.has(row.geography)) map.set(row.geography, []);
+      map.get(row.geography)!.push(row);
+    }
+    return map;
+  }, [energyRows]);
+
+  function metricValue(countyName: string, ly: LayerKey): number | null {
+    if (ly === "broadband") return countyAggregates.get(countyName)?.broadbandAvailabilityPct ?? null;
+    if (ly === "water") return countyAggregates.get(countyName)?.waterAffordabilityRatioPct ?? null;
+    return energyByCounty.get(countyName)?.medianBurdenPct ?? null;
+  }
+
+  const filteredCounties = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return ALL_COUNTIES;
+    return ALL_COUNTIES.filter(
+      (n) =>
+        n.toLowerCase().includes(q) ||
+        (placesByCounty.get(n) ?? []).some((p) => p.name.toLowerCase().includes(q))
+    );
+  }, [query, placesByCounty]);
+
+  return (
+    <div className="px-4 pt-6 pb-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-liberation-cream/15 mb-4 pb-0">
+        <div className="flex">
+          {(Object.keys(VIEW_LABEL) as ViewKey[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors ${
+                view === key
+                  ? "text-liberation-cream border-liberation-gold"
+                  : "text-liberation-cream/40 border-transparent hover:text-liberation-cream/60"
+              }`}
+              aria-current={view === key ? "true" : undefined}
+            >
+              {VIEW_LABEL[key]}
+            </button>
+          ))}
+        </div>
+        <div className="relative mb-2">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-liberation-cream/30" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Find a county…"
+            aria-label="Search counties"
+            className="pl-7 pr-3 py-1.5 text-xs rounded-md bg-liberation-dark/40 border border-liberation-cream/20 text-liberation-cream placeholder:text-liberation-cream/30 w-40 focus:outline-none focus:border-liberation-gold/50"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {(Object.keys(LAYER_LABEL) as LayerKey[]).map((key) => {
+          const Icon = LAYER_ICON[key];
+          const active = layer === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setLayer(key)}
+              aria-pressed={active}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                active
+                  ? "bg-liberation-gold text-liberation-dark border-liberation-gold"
+                  : "bg-transparent text-liberation-cream/60 border-liberation-cream/20 hover:border-liberation-cream/40"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {LAYER_LABEL[key]}
+            </button>
+          );
+        })}
+      </div>
+
+      {isLoading && (
+        <div className="space-y-3" aria-busy="true" aria-label="Loading essential services data">
+          <Skeleton className="h-64 w-full max-w-xl rounded-lg" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      )}
+
+      {isError && (
+        <div role="alert" className="h-40 flex flex-col items-center justify-center gap-2 text-liberation-cream/50 text-sm border border-liberation-cream/10 rounded-lg">
+          <span>Data couldn't load.</span>
+          <button onClick={() => window.location.reload()} className="text-xs text-liberation-gold hover:underline">
+            Try refreshing the page
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && view === "map" && (
+        <MapView
+          layer={layer}
+          query={query}
+          openCounty={openCounty}
+          setOpenCounty={setOpenCounty}
+          hovered={hovered}
+          setHovered={setHovered}
+          metricValue={metricValue}
+        />
+      )}
+
+      {!isLoading && !isError && view === "list" && (
+        <ListView
+          layer={layer}
+          counties={filteredCounties}
+          openCounty={openCounty}
+          setOpenCounty={setOpenCounty}
+          metricValue={metricValue}
+          countiesByName={countiesByName}
+          waterRates={servicesData?.waterSewageRates ?? []}
+          broadbandRates={servicesData?.broadbandRates ?? []}
+          allEnergyByCountyName={allEnergyByCountyName}
+          placesByCounty={placesByCounty}
+        />
+      )}
+
+      {view === "map" && !isLoading && !isError && (
+        <div className="border-t-2 border-liberation-cream/10 mt-1">
+          {openCounty ? (
+            <CountyDetailPanel
+              countyName={openCounty}
+              county={countiesByName.get(openCounty)}
+              waterRates={(servicesData?.waterSewageRates ?? []).filter((w) => w.county === openCounty)}
+              broadbandRates={(servicesData?.broadbandRates ?? []).filter((b) => b.county === openCounty)}
+              energyRows={allEnergyByCountyName.get(openCounty) ?? []}
+              places={placesByCounty.get(openCounty) ?? []}
+              onClose={() => setOpenCounty(null)}
+            />
+          ) : (
+            <p className="text-left text-xs text-liberation-cream/40 py-6">
+              Select any county above to see its water, energy, and broadband data.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Map view ──────────────────────────────────────────────────────────────────
+
+function MapView({
+  layer,
+  query,
+  openCounty,
+  setOpenCounty,
+  hovered,
+  setHovered,
+  metricValue,
+}: {
+  layer: LayerKey;
+  query: string;
+  openCounty: string | null;
+  setOpenCounty: (c: string | null) => void;
+  hovered: string | null;
+  setHovered: (c: string | null) => void;
+  metricValue: (countyName: string, layer: LayerKey) => number | null;
+}) {
+  const q = query.trim().toLowerCase();
+
+  return (
+    <>
+      <svg
+        viewBox={`0 0 ${GRID_COLS * (CELL + GAP)} ${GRID_ROWS * (CELL + GAP)}`}
+        className="w-full max-w-xl block"
+        style={{ height: "auto" }}
+        role="group"
+        aria-label="Michigan county cartogram"
+      >
+        <defs>
+          <pattern id="hatchNoData" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+            <rect width="5" height="5" fill="hsl(30 10% 40% / 0.12)" />
+            <line x1="0" y1="0" x2="0" y2="5" stroke="hsl(30 10% 50% / 0.35)" strokeWidth="1.2" />
+          </pattern>
+        </defs>
+        {Object.entries(GRID).map(([name, [r, c]]) => {
+          const value = metricValue(name, layer);
+          const isOpen = openCounty === name;
+          const matches = !q || name.toLowerCase().includes(q);
+          const x = c * (CELL + GAP);
+          const y = r * (CELL + GAP);
+          return (
+            <g
+              key={name}
+              tabIndex={0}
+              role="button"
+              aria-label={`${name} County${value !== null ? `, ${value}${LAYER_UNIT_SUFFIX[layer]}` : ", not yet sampled"}`}
+              aria-pressed={isOpen}
+              style={{ cursor: "pointer", outline: "none" }}
+              onClick={() => setOpenCounty(isOpen ? null : name)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setOpenCounty(isOpen ? null : name);
+                }
+              }}
+              onMouseEnter={() => setHovered(name)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(name)}
+              onBlur={() => setHovered(null)}
+            >
+              <rect
+                x={x} y={y} width={CELL} height={CELL} rx={3}
+                fill={value !== null ? tileColor(value, layer) : "url(#hatchNoData)"}
+                opacity={matches ? 1 : 0.25}
+                stroke={isOpen ? "#A8442C" : "#e5e7eb33"}
+                strokeWidth={isOpen ? 2 : 0.75}
+                style={{ transition: "stroke 0.1s ease" }}
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="text-left text-xs text-liberation-cream/40 mt-2 h-4" aria-live="polite">
+        {hovered ? (
+          <span>
+            <strong className="text-liberation-cream/80">{hovered} County</strong>
+            {" — "}
+            {(() => {
+              const v = metricValue(hovered, layer);
+              return v !== null ? `${v}${LAYER_UNIT_SUFFIX[layer]}` : "not yet sampled";
+            })()}
+          </span>
+        ) : (
+          "Tab to a county or hover for its value · press Enter to open details below"
+        )}
+      </div>
+
+      <div className="flex gap-5 flex-wrap text-[11px] text-liberation-cream/40 py-3">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: layer === "broadband" ? "hsl(152 34% 40%)" : "hsl(14 55% 40%)" }} />
+          {layer === "broadband" ? "High coverage" : "High burden"}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: layer === "broadband" ? "hsl(152 34% 75%)" : "hsl(14 55% 75%)" }} />
+          {layer === "broadband" ? "Lower coverage" : "Lower burden"}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-3 h-3 rounded-sm border border-liberation-cream/20"
+            style={{ background: "repeating-linear-gradient(45deg, hsl(30 10% 40% / 0.12) 0 2px, transparent 2px 4px)" }}
+          />
+          Not yet sampled
+        </span>
+      </div>
+    </>
+  );
+}
+
+// ── County List (Ledger) view ──────────────────────────────────────────────────
+// Mirrors PurplBook's LedgerView. IMPORTANT SCOPE NOTE: this lists counties
+// only. Nesting individual places (cities/villages) under their county was
+// requested, but the live michigan-essential-services function does not
+// currently return place-level records at all (verified directly against
+// the deployed source — no `places` field exists in its response). Adding
+// that requires a backend change first: a places query similar to the
+// existing counties query, filtered to level='place', plus a resolvable
+// parent-county link via geo_crosswalk. Flagging this plainly rather than
+// building UI that pretends to support data that doesn't exist yet.
+
+function ListView({
+  layer,
+  counties,
+  openCounty,
+  setOpenCounty,
+  metricValue,
+  countiesByName,
+  waterRates,
+  broadbandRates,
+  allEnergyByCountyName,
+  placesByCounty,
+}: {
+  layer: LayerKey;
+  counties: string[];
+  openCounty: string | null;
+  setOpenCounty: (c: string | null) => void;
+  metricValue: (countyName: string, layer: LayerKey) => number | null;
+  countiesByName: Map<string, CountyEntry>;
+  waterRates: WaterSewageRateEntry[];
+  broadbandRates: BroadbandRateEntry[];
+  allEnergyByCountyName: Map<string, EnergyBurdenEntry[]>;
+  placesByCounty: Map<string, PlaceEntry[]>;
+}) {
+  const max = useMemo(() => {
+    let m = 1;
+    for (const name of counties) {
+      const v = metricValue(name, layer);
+      if (v !== null) m = Math.max(m, v);
+    }
+    return m;
+  }, [counties, layer, metricValue]);
+
+  if (counties.length === 0) {
+    return <p className="text-xs text-liberation-cream/40 py-6">No counties or places match that search.</p>;
+  }
+
+  return (
+    <div role="list" aria-label="Michigan counties">
+      {counties.map((name) => {
+        const value = metricValue(name, layer);
+        const isEmpty = value === null;
+        const widthPct = isEmpty ? 0 : Math.max((value / max) * 100, 2);
+        const isOpen = openCounty === name;
+        const places = placesByCounty.get(name) ?? [];
+
+        return (
+          <div key={name} role="listitem" className="border-b border-liberation-cream/10">
+            <button
+              onClick={() => setOpenCounty(isOpen ? null : name)}
+              aria-expanded={isOpen}
+              className="w-full flex items-center gap-3 py-2.5 text-left"
+            >
+              <span className={`flex-shrink-0 w-3.5 h-3.5 text-liberation-cream/25 transition-transform ${isOpen ? "rotate-90 text-liberation-gold" : ""}`}>
+                ▸
+              </span>
+              <span className={`font-bold text-sm flex-shrink-0 w-28 ${isEmpty ? "text-liberation-cream/35" : "text-liberation-cream"}`}>
+                {name}
+                {places.length > 0 && (
+                  <span className="ml-1.5 text-[10px] font-normal text-liberation-cream/35">({places.length})</span>
+                )}
+              </span>
+              <span className="flex-1 h-1.5 rounded-full bg-liberation-cream/10 overflow-hidden max-w-[160px]">
+                <span className="block h-full rounded-full" style={{ width: `${widthPct}%`, background: barColor(layer) }} />
+              </span>
+              <span className={`text-xs font-mono w-16 text-right flex-shrink-0 ${isEmpty ? "text-liberation-cream/30" : "text-liberation-cream/70"}`}>
+                {isEmpty ? "—" : `${value}%`}
+              </span>
+            </button>
+            {isOpen && (
+              <CountyDetailPanel
+                countyName={name}
+                county={countiesByName.get(name)}
+                waterRates={waterRates.filter((w) => w.county === name)}
+                broadbandRates={broadbandRates.filter((b) => b.county === name)}
+                energyRows={allEnergyByCountyName.get(name) ?? []}
+                places={places}
+                onClose={() => setOpenCounty(null)}
+                compact
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── County detail panel ──────────────────────────────────────────────────────
+
+function TruncatedList<T>({
+  items,
+  render,
+  keyFn,
+  initialCount = 5,
+}: {
+  items: T[];
+  render: (item: T) => ReactNode;
+  keyFn: (item: T) => string;
+  initialCount?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? items : items.slice(0, initialCount);
+  const hiddenCount = items.length - initialCount;
+
+  return (
+    <>
+      <ul className="space-y-1 text-xs text-liberation-cream/60">
+        {visible.map((item) => (
+          <li key={keyFn(item)}>{render(item)}</li>
+        ))}
+      </ul>
+      {!expanded && hiddenCount > 0 && (
+        <button onClick={() => setExpanded(true)} className="text-[11px] text-liberation-gold hover:underline mt-1">
+          +{hiddenCount} more
+        </button>
+      )}
+    </>
+  );
+}
+
+function CountyDetailPanel({
+  countyName,
+  county,
+  waterRates,
+  broadbandRates,
+  energyRows,
+  places,
+  onClose,
+  compact = false,
+}: {
+  countyName: string;
+  county: CountyEntry | undefined;
+  waterRates: WaterSewageRateEntry[];
+  broadbandRates: BroadbandRateEntry[];
+  energyRows: EnergyBurdenEntry[];
+  places: PlaceEntry[];
+  onClose: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className={compact ? "pb-4 pl-6" : "py-4"} aria-live="polite">
+      {!compact && (
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold text-liberation-cream">{countyName} County</h4>
+          <button onClick={onClose} className="text-xs text-liberation-cream/40 hover:text-liberation-cream/70">
+            Close ✕
+          </button>
+        </div>
+      )}
+
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+            <Wifi className="w-3.5 h-3.5" /> Broadband
+          </div>
+          {broadbandRates.length > 0 ? (
+            <TruncatedList
+              items={broadbandRates}
+              keyFn={(r) => r.id}
+              render={(r) => (
+                <>
+                  {r.provider} — {r.technology || "—"}
+                  {r.availabilityPctOfZip !== null && `, ${r.availabilityPctOfZip}% avail.`}
+                  {r.zctaResolved && " (ZIP-resolved)"}
+                </>
+              )}
+            />
+          ) : (
+            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+            <Droplets className="w-3.5 h-3.5" /> Water & Sewage
+          </div>
+          {waterRates.length > 0 ? (
+            <TruncatedList
+              items={waterRates}
+              keyFn={(r) => r.id}
+              render={(r) => (
+                <>
+                  {r.provider} ({r.municipalityServiceArea || "—"})
+                  {r.estimatedTypicalMonthlyBill !== null && ` — $${r.estimatedTypicalMonthlyBill}/mo`}
+                  {r.affordabilityRatioPct !== null && `, ${r.affordabilityRatioPct}% of income`}
+                </>
+              )}
+            />
+          ) : (
+            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+            <Zap className="w-3.5 h-3.5" /> Energy Burden by Race
+          </div>
+          {energyRows.length > 0 ? (
+            <TruncatedList
+              items={energyRows}
+              keyFn={(r) => r.id}
+              render={(r) => (
+                <>
+                  {r.racialGroup}
+                  {r.medianBurdenPct !== null && `: ${r.medianBurdenPct}% of income`}
+                  {r.dataYear && ` (${r.dataYear})`}
+                </>
+              )}
+            />
+          ) : (
+            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
+          )}
+        </div>
+      </div>
+
+      {county && (
+        <div className="mt-3 text-xs text-liberation-cream/40">
+          {county.medianHouseholdIncome !== null && <span>County median household income: ${county.medianHouseholdIncome.toLocaleString()}</span>}
+          {county.povertyRatePct !== null && <span> · Poverty rate: {county.povertyRatePct}%</span>}
+          {county.raceBreakdown.map((r) => (
+            <span key={r.category}>
+              {" · "}
+              {r.category}: {r.pctOfPopulation !== null ? `${r.pctOfPopulation}%` : "—"} of population
+            </span>
+          ))}
+        </div>
+      )}
+
+      {places.length > 0 && (
+        <div className="mt-3">
+          <div className="text-xs font-medium text-liberation-cream/70 mb-1.5">
+            Places in this county ({places.length})
+          </div>
+          <TruncatedList
+            items={places}
+            keyFn={(p) => p.geoid}
+            render={(p) => (
+              <>
+                {p.name}
+                {p.population !== null && ` — pop. ${p.population.toLocaleString()}`}
+                {p.medianHouseholdIncome !== null && `, $${p.medianHouseholdIncome.toLocaleString()} median income`}
+              </>
+            )}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
