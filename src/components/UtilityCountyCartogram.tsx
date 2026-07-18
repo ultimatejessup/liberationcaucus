@@ -46,6 +46,30 @@ const CELL = 26, GAP = 3;
 const GRID_ROWS = Math.max(...Object.values(GRID).map(([r]) => r)) + 1;
 const GRID_COLS = Math.max(...Object.values(GRID).map(([, c]) => c)) + 1;
 
+// County abbreviations for on-tile labels, same technique as PurplBook's
+// ABBR map — every county is legible at a glance without needing hover,
+// rather than relying on color alone.
+const ABBR: Record<string, string> = {
+  Alcona: "ALC", Alger: "ALG", Allegan: "ALL", Alpena: "ALP", Antrim: "ANT",
+  Arenac: "ARE", Baraga: "BRG", Barry: "BAR", Bay: "BAY", Benzie: "BEN",
+  Berrien: "BER", Branch: "BRA", Calhoun: "CAL", Cass: "CAS", Charlevoix: "CHA",
+  Cheboygan: "CHE", Chippewa: "CHI", Clare: "CLA", Clinton: "CLI", Crawford: "CRA",
+  Delta: "DEL", Dickinson: "DIC", Eaton: "EAT", Emmet: "EMM", Genesee: "GEN",
+  Gladwin: "GLA", Gogebic: "GOG", "Grand Traverse": "GT", Gratiot: "GRA",
+  Hillsdale: "HIL", Houghton: "HOU", Huron: "HUR", Ingham: "ING", Ionia: "ION",
+  Iosco: "IOS", Iron: "IRO", Isabella: "ISA", Jackson: "JAC", Kalamazoo: "KZO",
+  Kalkaska: "KLK", Kent: "KEN", Keweenaw: "KEW", Lake: "LAK", Lapeer: "LAP",
+  Leelanau: "LEE", Lenawee: "LEN", Livingston: "LIV", Luce: "LUC", Mackinac: "MAK",
+  Macomb: "MAC", Manistee: "MAN", Marquette: "MAR", Mason: "MAS", Mecosta: "MEC",
+  Menominee: "MEN", Midland: "MID", Missaukee: "MIS", Monroe: "MOE", Montcalm: "MTC",
+  Montmorency: "MTM", Muskegon: "MUS", Newaygo: "NEW", Oakland: "OAK", Oceana: "OCE",
+  Ogemaw: "OGE", Ontonagon: "ONT", Osceola: "OSC", Oscoda: "OSD", Otsego: "OTS",
+  Ottawa: "OTT", "Presque Isle": "PI", Roscommon: "ROS", Saginaw: "SAG",
+  Sanilac: "SAN", Schoolcraft: "SCH", Shiawassee: "SHI", "St. Clair": "SC",
+  "St. Joseph": "SJ", Tuscola: "TUS", "Van Buren": "VB", Washtenaw: "WAS",
+  Wayne: "WAY", Wexford: "WEX",
+};
+
 type LayerKey = "broadband" | "water" | "energy";
 type ViewKey = "map" | "list";
 
@@ -71,22 +95,31 @@ const LAYER_ICON: Record<LayerKey, typeof Wifi> = {
 };
 const VIEW_LABEL: Record<ViewKey, string> = { map: "Map", list: "County List" };
 
+// No-data fill: needs to read as a distinct, visible TILE against the dark
+// page background — the previous version (near-transparent, low-alpha hatch)
+// effectively vanished against liberation-dark, which is what made most of
+// the 83 counties look "missing" rather than just "unsampled."
+const NO_DATA_FILL = "hsl(40 20% 88% / 0.14)";
+
+// Rewritten for legibility on a DARK background — PurplBook's own ramp
+// (lightness 82->32, darker = more) works because PurplBook sits on a white
+// page; darkening a tile on a dark background makes it LESS visible, the
+// opposite of what's needed here. Lightness stays in a fixed, always-visible
+// band; SATURATION carries the intensity signal instead: low value = pale,
+// high value = vivid. Every data tile stays clearly lighter than the page
+// background regardless of magnitude.
 function tileColor(value: number | null, layer: LayerKey): string {
-  if (value === null) return "transparent";
-  // Both directions use the same lightness curve — higher magnitude always
-  // reads as more saturated/darker. What differs is the hue (green for
-  // broadband's "more coverage is better", terracotta for water/energy's
-  // "more burden is worse") and the max used to normalize t, not the curve
-  // itself. No need for a separate branch per direction.
-  const max = layer === "broadband" ? 100 : 15; // availability caps at 100%; burden ratios treated as maxed at 15%+
-  const t = Math.min(1, value / max);
-  const lightness = 85 - t * 45;
-  const hue = layer === "broadband" ? "152 34%" : "14 55%";
-  return `hsl(${hue} ${lightness}%)`;
+  if (value === null) return NO_DATA_FILL;
+  const max = layer === "broadband" ? 100 : 15;
+  const t = Math.min(1, Math.max(0, value / max));
+  const saturation = 25 + t * 55;
+  const lightness = 78 - t * 18;
+  const hue = layer === "broadband" ? 152 : 14;
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
 function barColor(layer: LayerKey): string {
-  return layer === "broadband" ? "hsl(152 45% 40%)" : "hsl(14 55% 45%)";
+  return layer === "broadband" ? "hsl(152 55% 55%)" : "hsl(14 65% 58%)";
 }
 
 export default function UtilityCountyCartogram() {
@@ -301,22 +334,19 @@ function MapView({
       <svg
         viewBox={`0 0 ${GRID_COLS * (CELL + GAP)} ${GRID_ROWS * (CELL + GAP)}`}
         className="w-full max-w-xl block"
-        style={{ height: "auto" }}
+        style={{ height: "auto", overflow: "visible" }}
         role="group"
         aria-label="Michigan county cartogram"
       >
-        <defs>
-          <pattern id="hatchNoData" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
-            <rect width="5" height="5" fill="hsl(30 10% 40% / 0.12)" />
-            <line x1="0" y1="0" x2="0" y2="5" stroke="hsl(30 10% 50% / 0.35)" strokeWidth="1.2" />
-          </pattern>
-        </defs>
         {Object.entries(GRID).map(([name, [r, c]]) => {
           const value = metricValue(name, layer);
           const isOpen = openCounty === name;
+          const isHovered = hovered === name;
           const matches = !q || name.toLowerCase().includes(q);
           const x = c * (CELL + GAP);
           const y = r * (CELL + GAP);
+          const cx = x + CELL / 2;
+          const cy = y + CELL / 2;
           return (
             <g
               key={name}
@@ -324,7 +354,14 @@ function MapView({
               role="button"
               aria-label={`${name} County${value !== null ? `, ${value}${LAYER_UNIT_SUFFIX[layer]}` : ", not yet sampled"}`}
               aria-pressed={isOpen}
-              style={{ cursor: "pointer", outline: "none" }}
+              opacity={matches ? 1 : 0.2}
+              style={{
+                cursor: "pointer",
+                outline: "none",
+                transform: isHovered ? "scale(1.12)" : "scale(1)",
+                transformOrigin: `${cx}px ${cy}px`,
+                transition: "transform 0.15s ease",
+              }}
               onClick={() => setOpenCounty(isOpen ? null : name)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -338,13 +375,24 @@ function MapView({
               onBlur={() => setHovered(null)}
             >
               <rect
-                x={x} y={y} width={CELL} height={CELL} rx={3}
-                fill={value !== null ? tileColor(value, layer) : "url(#hatchNoData)"}
-                opacity={matches ? 1 : 0.25}
-                stroke={isOpen ? "#A8442C" : "#e5e7eb33"}
+                x={x} y={y} width={CELL} height={CELL} rx={4}
+                fill={tileColor(value, layer)}
+                stroke={isOpen ? "#A8442C" : "hsl(40 15% 80% / 0.3)"}
                 strokeWidth={isOpen ? 2 : 0.75}
                 style={{ transition: "stroke 0.1s ease" }}
               />
+              <text
+                x={cx} y={cy}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontFamily="ui-monospace, monospace"
+                fontWeight={600}
+                fontSize={ABBR[name]?.length > 2 ? 8 : 9}
+                fill={value !== null ? "hsl(30 25% 18%)" : "hsl(40 15% 55%)"}
+                style={{ pointerEvents: "none" }}
+              >
+                {ABBR[name] ?? name.slice(0, 3).toUpperCase()}
+              </text>
             </g>
           );
         })}
@@ -361,24 +409,21 @@ function MapView({
             })()}
           </span>
         ) : (
-          "Tab to a county or hover for its value · press Enter to open details below"
+          "Hover or tab to a county for its value · click or press Enter to open details below"
         )}
       </div>
 
       <div className="flex gap-5 flex-wrap text-[11px] text-liberation-cream/40 py-3">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: layer === "broadband" ? "hsl(152 34% 40%)" : "hsl(14 55% 40%)" }} />
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: tileColor(layer === "broadband" ? 100 : 15, layer) }} />
           {layer === "broadband" ? "High coverage" : "High burden"}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: layer === "broadband" ? "hsl(152 34% 75%)" : "hsl(14 55% 75%)" }} />
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: tileColor(layer === "broadband" ? 20 : 2, layer) }} />
           {layer === "broadband" ? "Lower coverage" : "Lower burden"}
         </span>
         <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block w-3 h-3 rounded-sm border border-liberation-cream/20"
-            style={{ background: "repeating-linear-gradient(45deg, hsl(30 10% 40% / 0.12) 0 2px, transparent 2px 4px)" }}
-          />
+          <span className="inline-block w-3 h-3 rounded-sm border border-liberation-cream/20" style={{ background: NO_DATA_FILL }} />
           Not yet sampled
         </span>
       </div>
