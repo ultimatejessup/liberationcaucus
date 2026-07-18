@@ -21,7 +21,7 @@ import {
   type CommissionMeeting,
 } from "@/hooks/useUtilityRateTracker";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import UtilityCountyMap from "@/components/UtilityCountyMap";
+import UtilityCountyCartogram from "@/components/UtilityCountyCartogram";
 import { Map } from "lucide-react"; // add to the existing lucide-react import line
 
 function StatBlock({ label, value }: { label: string; value: string | number | null }) {
@@ -354,7 +354,7 @@ const UtilityRateTracker = () => {
                     ))}
                 </TabsContent>
                 <TabsContent value="county-map">
-                  <UtilityCountyMap />
+                 <UtilityCountyCartogram />
                 </TabsContent>
               </Tabs>
             )}
