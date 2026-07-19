@@ -1,14 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 
-// Pulls only what the cartogram needs from the real, deployed
-// utility-rate-tracker function (Supabase, v3, ACTIVE — verified directly).
-// Energy burden is NOT in michigan-essential-services; it lives here,
-// keyed by race_ethnicity within a geography, not as a single per-county
-// number. rateActions/stateComparison/commissionMeetings/rateHistory also
-// come from this same function but are intentionally left out of this hook
-// — those stay on their own standalone tabs and already have their own
-// data path; duplicating them here would just be two hooks hitting the
-// same endpoint for no reason.
+// Pulls what the cartogram needs from the real, deployed utility-rate-tracker
+// function (Supabase, v3, ACTIVE — verified directly). Energy burden,
+// rate actions, and rate history all live here, not in
+// michigan-essential-services. stateComparison/commissionMeetings are
+// intentionally left out — those stay on their own standalone tabs with
+// their own existing data path (useUtilityRateTracker.ts); duplicating them
+// here would just be a second hook hitting the same endpoint for no reason.
+//
+// All three hooks below share ONE queryKey ("utility-rate-tracker") so
+// TanStack Query dedupes them to a single network call, even though the
+// cartogram uses all three simultaneously.
 
 export interface EnergyBurdenEntry {
   id: string;
@@ -22,7 +24,46 @@ export interface EnergyBurdenEntry {
   notes: string;
 }
 
-async function fetchEnergyBurden(): Promise<EnergyBurdenEntry[]> {
+export interface RateActionEntry {
+  id: string;
+  title: string;
+  utility: string;
+  actionType: string;
+  serviceType: string;
+  marketType: string;
+  geography: string;
+  geographyLevel: string;
+  residentialMonthlyImpact: number | null;
+  residentialPctIncrease: number | null;
+  rateIncreasePercent: number | null;
+  effectiveDate: string;
+  decisionDate: string;
+  caseNumber: string;
+  sourceUrl: string;
+  notes: string;
+}
+
+export interface RateHistoryEntry {
+  id: string;
+  utilityAndYear: string;
+  utility: string;
+  year: number | null;
+  serviceType: string;
+  rateUnit: string;
+  rateCentsPerKwh: number | null;
+  yoyChangePct: number | null;
+  caseNumber: string;
+  source: string;
+  notes: string;
+}
+
+interface UtilityRateTrackerRaw {
+  energyBurden: EnergyBurdenEntry[];
+  rateActions: RateActionEntry[];
+  rateHistory: RateHistoryEntry[];
+}
+
+async function fetchUtilityRateTrackerRaw(): Promise<UtilityRateTrackerRaw> {
   const projectUrl = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -31,18 +72,49 @@ async function fetchEnergyBurden(): Promise<EnergyBurdenEntry[]> {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to load energy burden data. Please try again.");
+    throw new Error("Failed to load utility rate data. Please try again.");
   }
 
   const data = await response.json();
-  return data.energyBurden ?? [];
+  return {
+    energyBurden: data.energyBurden ?? [],
+    rateActions: data.rateActions ?? [],
+    rateHistory: data.rateHistory ?? [],
+  };
 }
 
+const QUERY_KEY = ["utility-rate-tracker"];
+
 export function useEnergyBurdenByCounty() {
-  return useQuery({
-    queryKey: ["utility-rate-tracker", "energy-burden"],
-    queryFn: fetchEnergyBurden,
+  return useQuery<UtilityRateTrackerRaw, Error, EnergyBurdenEntry[]>({
+    queryKey: QUERY_KEY,
+    queryFn: fetchUtilityRateTrackerRaw,
     staleTime: 60 * 60 * 1000,
-    select: (rows) => rows.filter((r) => r.geographyType === "county"),
+    select: (data) => data.energyBurden.filter((r) => r.geographyType === "county"),
+  });
+}
+
+// Recent rate actions filed/decided for a given county, so a person can see
+// what happened to their own area's rates, not just statewide totals.
+// Filtering is a plain client-side name match against `geography` -- most
+// rate actions are utility-wide (DTE, Consumers Energy) rather than
+// county-specific, so this will often be empty for a given county; the
+// component shows an honest "none on file for this county" state rather
+// than hiding the section.
+export function useRateActionsByCounty() {
+  return useQuery<UtilityRateTrackerRaw, Error, RateActionEntry[]>({
+    queryKey: QUERY_KEY,
+    queryFn: fetchUtilityRateTrackerRaw,
+    staleTime: 60 * 60 * 1000,
+    select: (data) => data.rateActions,
+  });
+}
+
+export function useRateHistoryByCounty() {
+  return useQuery<UtilityRateTrackerRaw, Error, RateHistoryEntry[]>({
+    queryKey: QUERY_KEY,
+    queryFn: fetchUtilityRateTrackerRaw,
+    staleTime: 60 * 60 * 1000,
+    select: (data) => data.rateHistory,
   });
 }
