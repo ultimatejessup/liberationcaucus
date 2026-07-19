@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Wifi, Droplets, Zap, Search } from "lucide-react";
+import { Wifi, Droplets, Zap, Search, TrendingUp } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useMichiganEssentialServices,
@@ -10,7 +11,14 @@ import {
   type WaterSewageRateEntry,
   type BroadbandRateEntry,
 } from "@/hooks/useMichiganEssentialServices";
-import { useEnergyBurdenByCounty, type EnergyBurdenEntry } from "@/hooks/useEnergyBurdenByCounty";
+import {
+  useEnergyBurdenByCounty,
+  useRateActionsByCounty,
+  useRateHistoryByCounty,
+  type EnergyBurdenEntry,
+  type RateActionEntry,
+  type RateHistoryEntry,
+} from "@/hooks/useEnergyBurdenByCounty";
 
 // ── Grid layout ──────────────────────────────────────────────────────────────
 // Same technique as PurplBook.tsx's AtlasView: hand-derived cartogram grid,
@@ -99,7 +107,7 @@ const VIEW_LABEL: Record<ViewKey, string> = { map: "Map", list: "County List" };
 // page background — the previous version (near-transparent, low-alpha hatch)
 // effectively vanished against liberation-dark, which is what made most of
 // the 83 counties look "missing" rather than just "unsampled."
-const NO_DATA_FILL = "hsl(40 20% 88% / 0.14)";
+const NO_DATA_FILL = "hsl(40 20% 88% / 0.22)";
 
 // Rewritten for legibility on a DARK background — PurplBook's own ramp
 // (lightness 82->32, darker = more) works because PurplBook sits on a white
@@ -243,7 +251,7 @@ export default function UtilityCountyCartogram() {
 
       {isLoading && (
         <div className="space-y-3" aria-busy="true" aria-label="Loading essential services data">
-          <Skeleton className="h-64 w-full max-w-xl rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-lg" />
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-4 w-1/3" />
         </div>
@@ -333,7 +341,7 @@ function MapView({
     <>
       <svg
         viewBox={`0 0 ${GRID_COLS * (CELL + GAP)} ${GRID_ROWS * (CELL + GAP)}`}
-        className="w-full max-w-xl block"
+        className="w-full block"
         style={{ height: "auto", overflow: "visible" }}
         role="group"
         aria-label="Michigan county cartogram"
@@ -377,7 +385,7 @@ function MapView({
               <rect
                 x={x} y={y} width={CELL} height={CELL} rx={4}
                 fill={tileColor(value, layer)}
-                stroke={isOpen ? "#A8442C" : "hsl(40 15% 80% / 0.3)"}
+                stroke={isOpen ? "#A8442C" : "hsl(40 15% 82% / 0.45)"}
                 strokeWidth={isOpen ? 2 : 0.75}
                 style={{ transition: "stroke 0.1s ease" }}
               />
@@ -562,6 +570,48 @@ function TruncatedList<T>({
   );
 }
 
+// ── Mini pie chart ────────────────────────────────────────────────────────────
+// Small recharts pie for the three summary cards. Each slice's meaning is
+// deliberately kept to things that are genuinely "parts of a whole" (sums to
+// ~100%) — technology mix, bill composition, population share — rather than
+// forcing independent percentages (like burden % per race group, which does
+// NOT sum to 100 across races) into a pie, which would misrepresent the data.
+const PIE_COLORS = ["hsl(152 45% 58%)", "hsl(14 65% 62%)", "hsl(40 55% 62%)", "hsl(210 45% 62%)", "hsl(280 35% 62%)"];
+
+function MiniPie({ data }: { data: Array<{ name: string; value: number }> }) {
+  if (data.length === 0 || data.every((d) => d.value === 0)) {
+    return <p className="text-xs text-liberation-cream/40">Not enough data to chart.</p>;
+  }
+  return (
+    <div className="flex items-center gap-3">
+      <div style={{ width: 72, height: 72 }} className="flex-shrink-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={data} dataKey="value" nameKey="name" innerRadius={18} outerRadius={34} paddingAngle={2}>
+              {data.map((_, i) => (
+                <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value: number, name: string) => [`${value}%`, name]}
+              contentStyle={{ background: "#1a1512", border: "1px solid rgba(244,236,216,0.15)", borderRadius: 6, fontSize: 11 }}
+              itemStyle={{ color: "#f4ecd8" }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <ul className="text-[11px] text-liberation-cream/60 space-y-0.5">
+        {data.map((d, i) => (
+          <li key={d.name} className="flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+            {d.name}: {d.value}%
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function CountyDetailPanel({
   countyName,
   county,
@@ -581,6 +631,77 @@ function CountyDetailPanel({
   onClose: () => void;
   compact?: boolean;
 }) {
+  const { data: allRateActions } = useRateActionsByCounty() as { data: RateActionEntry[] | undefined };
+  const { data: allRateHistory } = useRateHistoryByCounty() as { data: RateHistoryEntry[] | undefined };
+
+  // Rate actions filed/decided specifically for this county. Most MPSC
+  // filings are utility-wide rather than county-specific, so this is often
+  // empty — that's shown honestly below rather than hidden.
+  const countyRateActions = useMemo(
+    () => (allRateActions ?? []).filter((a: RateActionEntry) => a.geography === countyName),
+    [allRateActions, countyName]
+  );
+
+  // Rate history has no geography link at all (confirmed against the live
+  // schema — utility_rate_history_mi is statewide/utility-level only), so
+  // "over time" is shown for whichever utility(ies) actually filed an action
+  // in this county, rather than every utility in the state.
+  const relevantUtilities = useMemo(
+    () => new Set(countyRateActions.map((a: RateActionEntry) => a.utility).filter(Boolean)),
+    [countyRateActions]
+  );
+  const utilityRateHistory = useMemo(
+    () =>
+      (allRateHistory ?? [])
+        .filter((h: RateHistoryEntry) => relevantUtilities.has(h.utility))
+        .sort((a: RateHistoryEntry, b: RateHistoryEntry) => (a.year ?? 0) - (b.year ?? 0)),
+    [allRateHistory, relevantUtilities]
+  );
+
+  // Broadband: technology mix by share of sampled records — genuinely
+  // "parts of a whole" (every record has exactly one technology).
+  const broadbandPie = useMemo(() => {
+    if (broadbandRates.length === 0) return [];
+    const counts = new Map<string, number>();
+    for (const r of broadbandRates) {
+      const tech = r.technology || "Unknown";
+      counts.set(tech, (counts.get(tech) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).map(([name, count]) => ({
+      name,
+      value: Math.round((count / broadbandRates.length) * 100),
+    }));
+  }, [broadbandRates]);
+
+  // Water & sewage: fixed customer charge vs. estimated usage charge, as a
+  // share of the typical monthly bill. The usage-charge share is a RESIDUAL
+  // (typical bill minus the fixed charge) since per-record usage-volume
+  // detail isn't tracked — an approximation, and labeled as one.
+  const waterPie = useMemo(() => {
+    const withBoth = waterRates.filter(
+      (r) => r.estimatedTypicalMonthlyBill !== null && r.customerChargeMonthly !== null && r.estimatedTypicalMonthlyBill > 0
+    );
+    if (withBoth.length === 0) return [];
+    const avgBill = withBoth.reduce((s, r) => s + (r.estimatedTypicalMonthlyBill ?? 0), 0) / withBoth.length;
+    const avgFixed = withBoth.reduce((s, r) => s + (r.customerChargeMonthly ?? 0), 0) / withBoth.length;
+    const fixedPct = Math.max(0, Math.min(100, Math.round((avgFixed / avgBill) * 100)));
+    return [
+      { name: "Fixed charge", value: fixedPct },
+      { name: "Est. usage charge", value: 100 - fixedPct },
+    ];
+  }, [waterRates]);
+
+  // Energy section pie: population share by race — a valid "parts of a
+  // whole" from county demographics (sums to ~100%). Deliberately NOT a pie
+  // of burden % per race, since those are independent figures that don't sum
+  // to a meaningful total; burden % is still shown as plain numbers below.
+  const racePopulationPie = useMemo(() => {
+    if (!county || county.raceBreakdown.length === 0) return [];
+    return county.raceBreakdown
+      .filter((r) => r.pctOfPopulation !== null)
+      .map((r) => ({ name: r.category, value: r.pctOfPopulation as number }));
+  }, [county]);
+
   return (
     <div className={compact ? "pb-4 pl-6" : "py-4"} aria-live="polite">
       {!compact && (
@@ -594,79 +715,134 @@ function CountyDetailPanel({
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
             <Wifi className="w-3.5 h-3.5" /> Broadband
           </div>
           {broadbandRates.length > 0 ? (
-            <TruncatedList
-              items={broadbandRates}
-              keyFn={(r) => r.id}
-              render={(r) => (
-                <>
-                  {r.provider} — {r.technology || "—"}
-                  {r.availabilityPctOfZip !== null && `, ${r.availabilityPctOfZip}% avail.`}
-                  {r.zctaResolved && " (ZIP-resolved)"}
-                </>
-              )}
-            />
+            <>
+              <MiniPie data={broadbandPie} />
+              <div className="mt-2">
+                <TruncatedList
+                  items={broadbandRates}
+                  keyFn={(r) => r.id}
+                  initialCount={3}
+                  render={(r) => (
+                    <>
+                      {r.provider} — {r.technology || "—"}
+                      {r.availabilityPctOfZip !== null && `, ${r.availabilityPctOfZip}% avail.`}
+                    </>
+                  )}
+                />
+              </div>
+            </>
           ) : (
             <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
           )}
         </div>
 
         <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
             <Droplets className="w-3.5 h-3.5" /> Water & Sewage
           </div>
           {waterRates.length > 0 ? (
-            <TruncatedList
-              items={waterRates}
-              keyFn={(r) => r.id}
-              render={(r) => (
-                <>
-                  {r.provider} ({r.municipalityServiceArea || "—"})
-                  {r.estimatedTypicalMonthlyBill !== null && ` — $${r.estimatedTypicalMonthlyBill}/mo`}
-                  {r.affordabilityRatioPct !== null && `, ${r.affordabilityRatioPct}% of income`}
-                </>
-              )}
-            />
+            <>
+              <MiniPie data={waterPie} />
+              <div className="mt-2">
+                <TruncatedList
+                  items={waterRates}
+                  keyFn={(r) => r.id}
+                  initialCount={3}
+                  render={(r) => (
+                    <>
+                      {r.provider} ({r.municipalityServiceArea || "—"})
+                      {r.estimatedTypicalMonthlyBill !== null && ` — $${r.estimatedTypicalMonthlyBill}/mo`}
+                      {r.affordabilityRatioPct !== null && `, ${r.affordabilityRatioPct}% of income`}
+                    </>
+                  )}
+                />
+              </div>
+            </>
           ) : (
             <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
           )}
         </div>
 
         <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
             <Zap className="w-3.5 h-3.5" /> Energy Burden by Race
           </div>
+          {racePopulationPie.length > 0 && <MiniPie data={racePopulationPie} />}
           {energyRows.length > 0 ? (
+            <div className="mt-2">
+              <div className="text-[11px] text-liberation-cream/50 mb-1">Median energy burden (% of income), by race:</div>
+              <TruncatedList
+                items={energyRows}
+                keyFn={(r) => r.id}
+                initialCount={3}
+                render={(r) => (
+                  <>
+                    {r.racialGroup}
+                    {r.medianBurdenPct !== null && `: ${r.medianBurdenPct}%`}
+                    {r.dataYear && ` (${r.dataYear})`}
+                  </>
+                )}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-liberation-cream/40 mt-2">Burden-by-race not yet sampled in this county.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Energy providers & rate changes — lets a person connect their own
+          utility to recent rate actions and, where available, that utility's
+          rate history over time. */}
+      <div className="mt-3 rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+          <TrendingUp className="w-3.5 h-3.5" /> Energy Providers & Rate Changes
+        </div>
+        {countyRateActions.length > 0 ? (
+          <>
             <TruncatedList
-              items={energyRows}
-              keyFn={(r) => r.id}
-              render={(r) => (
+              items={countyRateActions}
+              keyFn={(a: RateActionEntry) => a.id}
+              initialCount={3}
+              render={(a: RateActionEntry) => (
                 <>
-                  {r.racialGroup}
-                  {r.medianBurdenPct !== null && `: ${r.medianBurdenPct}% of income`}
-                  {r.dataYear && ` (${r.dataYear})`}
+                  <strong className="text-liberation-cream/80">{a.utility}</strong> — {a.actionType || "rate action"}
+                  {a.residentialPctIncrease !== null && `, ${a.residentialPctIncrease}% residential increase`}
+                  {a.effectiveDate && ` (effective ${a.effectiveDate})`}
                 </>
               )}
             />
-          ) : (
-            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
-          )}
-        </div>
+            {utilityRateHistory.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-liberation-cream/10">
+                <div className="text-[11px] text-liberation-cream/50 mb-1">Rate over time:</div>
+                <TruncatedList
+                  items={utilityRateHistory}
+                  keyFn={(h: RateHistoryEntry) => h.id}
+                  initialCount={4}
+                  render={(h: RateHistoryEntry) => (
+                    <>
+                      {h.utility} {h.year}: {h.rateCentsPerKwh !== null ? `${h.rateCentsPerKwh}¢/kWh` : "—"}
+                      {h.yoyChangePct !== null && ` (${h.yoyChangePct > 0 ? "+" : ""}${h.yoyChangePct}% YoY)`}
+                    </>
+                  )}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-liberation-cream/40">
+            No rate actions on file for {countyName} specifically — most filings are utility-wide. See the Rate Actions tab for the full statewide list.
+          </p>
+        )}
       </div>
 
       {county && (
         <div className="mt-3 text-xs text-liberation-cream/40">
           {county.medianHouseholdIncome !== null && <span>County median household income: ${county.medianHouseholdIncome.toLocaleString()}</span>}
           {county.povertyRatePct !== null && <span> · Poverty rate: {county.povertyRatePct}%</span>}
-          {county.raceBreakdown.map((r) => (
-            <span key={r.category}>
-              {" · "}
-              {r.category}: {r.pctOfPopulation !== null ? `${r.pctOfPopulation}%` : "—"} of population
-            </span>
-          ))}
         </div>
       )}
 
