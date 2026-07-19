@@ -22,35 +22,44 @@ import {
 
 // ── Grid layout ──────────────────────────────────────────────────────────────
 // Same technique as PurplBook.tsx's AtlasView: hand-derived cartogram grid,
-// plain inline SVG. Positions from real county centroids (topojson/us-atlas),
-// compressed to 27x25 with zero collisions.
+// plain inline SVG. REBUILT 2026-07-18: the original version scaled real
+// county centroids directly onto a grid, which produced visibly uneven
+// spacing (large gaps between some counties, cramped clusters elsewhere) —
+// real-world coordinate spacing doesn't translate cleanly to a uniform grid.
+// This version instead RANKS counties into latitude bands (rows), then packs
+// each row's counties into CONSECUTIVE integer columns (sorted by longitude,
+// no internal gaps) with a per-row column offset derived from that row's
+// mean longitude — preserving Michigan's general silhouette (narrow UP
+// tapering to a point, Lower Peninsula widening below) while guaranteeing
+// uniform, gapless spacing within and between rows. 16 rows x 11 cols,
+// zero position collisions, all 83 counties present.
 
 const GRID: Record<string, [number, number]> = {
-  Alcona: [14, 21], Alger: [5, 11], Allegan: [22, 12], Alpena: [12, 21],
-  Antrim: [12, 15], Arenac: [16, 20], Baraga: [4, 5], Barry: [22, 15],
-  Bay: [18, 20], Benzie: [14, 12], Berrien: [26, 11], Branch: [26, 16],
-  Calhoun: [24, 16], Cass: [26, 12], Charlevoix: [10, 15], Cheboygan: [10, 18],
-  Chippewa: [6, 19], Clare: [16, 16], Clinton: [21, 18], Crawford: [14, 18],
-  Delta: [9, 10], Dickinson: [8, 6], Eaton: [22, 16], Emmet: [10, 16],
-  Genesee: [21, 20], Gladwin: [16, 18], Gogebic: [5, 0], "Grand Traverse": [12, 14],
-  Gratiot: [20, 18], Hillsdale: [26, 18], Houghton: [4, 4], Huron: [18, 22],
-  Ingham: [22, 18], Ionia: [21, 16], Iosco: [15, 21], Iron: [8, 4],
-  Isabella: [19, 16], Jackson: [24, 18], Kalamazoo: [24, 14], Kalkaska: [14, 15],
-  Kent: [21, 14], Keweenaw: [0, 5], Lake: [16, 14], Lapeer: [20, 21],
-  Leelanau: [11, 14], Lenawee: [26, 19], Livingston: [22, 19], Luce: [5, 14],
-  Mackinac: [8, 16], Macomb: [22, 22], Manistee: [15, 12], Marquette: [5, 8],
-  Mason: [16, 11], Mecosta: [18, 15], Menominee: [10, 8], Midland: [19, 18],
-  Missaukee: [15, 16], Monroe: [26, 21], Montcalm: [20, 15], Montmorency: [11, 19],
-  Muskegon: [20, 12], Newaygo: [19, 14], Oakland: [22, 21], Oceana: [18, 11],
-  Ogemaw: [15, 19], Ontonagon: [4, 1], Osceola: [16, 15], Oscoda: [14, 19],
-  Otsego: [11, 18], Ottawa: [21, 12], "Presque Isle": [10, 20], Roscommon: [15, 18],
-  Saginaw: [19, 19], Sanilac: [20, 22], Schoolcraft: [8, 12], Shiawassee: [21, 19],
-  "St. Clair": [22, 24], "St. Joseph": [26, 14], Tuscola: [19, 21], "Van Buren": [24, 12],
-  Washtenaw: [24, 20], Wayne: [25, 22], Wexford: [15, 14],
+  Alcona: [7, 9], Alger: [2, 5], Allegan: [13, 4], Alpena: [6, 9],
+  Antrim: [6, 6], Arenac: [9, 8], Baraga: [1, 3], Barry: [13, 5],
+  Bay: [10, 9], Benzie: [7, 4], Berrien: [15, 3], Branch: [15, 6],
+  Calhoun: [14, 6], Cass: [15, 4], Charlevoix: [5, 5], Cheboygan: [5, 7],
+  Chippewa: [3, 7], Clare: [9, 6], Clinton: [12, 7], Crawford: [7, 7],
+  Delta: [4, 5], Dickinson: [4, 4], Eaton: [13, 6], Emmet: [5, 6],
+  Genesee: [12, 9], Gladwin: [9, 7], Gogebic: [2, 3], "Grand Traverse": [7, 5],
+  Gratiot: [11, 6], Hillsdale: [15, 7], Houghton: [1, 2], Huron: [9, 9],
+  Ingham: [13, 7], Ionia: [12, 6], Iosco: [8, 9], Iron: [3, 4],
+  Isabella: [10, 7], Jackson: [14, 7], Kalamazoo: [14, 5], Kalkaska: [7, 6],
+  Kent: [12, 5], Keweenaw: [0, 2], Lake: [9, 4], Lapeer: [11, 9],
+  Leelanau: [6, 5], Lenawee: [15, 8], Livingston: [13, 8], Luce: [2, 6],
+  Mackinac: [3, 6], Macomb: [13, 10], Manistee: [8, 4], Marquette: [2, 4],
+  Mason: [9, 3], Mecosta: [10, 6], Menominee: [5, 4], Midland: [10, 8],
+  Missaukee: [8, 6], Monroe: [15, 9], Montcalm: [11, 5], Montmorency: [6, 8],
+  Muskegon: [11, 4], Newaygo: [10, 5], Oakland: [13, 9], Oceana: [10, 4],
+  Ogemaw: [8, 8], Ontonagon: [1, 1], Osceola: [9, 5], Oscoda: [7, 8],
+  Otsego: [6, 7], Ottawa: [12, 4], "Presque Isle": [5, 8], Roscommon: [8, 7],
+  Saginaw: [11, 7], Sanilac: [11, 10], Schoolcraft: [3, 5], Shiawassee: [12, 8],
+  "St. Clair": [12, 10], "St. Joseph": [15, 5], Tuscola: [11, 8], "Van Buren": [14, 4],
+  Washtenaw: [14, 8], Wayne: [14, 9], Wexford: [8, 5],
 };
 
 const ALL_COUNTIES = Object.keys(GRID).sort();
-const CELL = 26, GAP = 3;
+const CELL = 42, GAP = 5;
 const GRID_ROWS = Math.max(...Object.values(GRID).map(([r]) => r)) + 1;
 const GRID_COLS = Math.max(...Object.values(GRID).map(([, c]) => c)) + 1;
 
@@ -78,52 +87,52 @@ const ABBR: Record<string, string> = {
   Wayne: "WAY", Wexford: "WEX",
 };
 
-type LayerKey = "broadband" | "water" | "energy";
+type LayerKey = "broadband" | "water";
 type ViewKey = "map" | "list";
 
 // Each layer has its own unit and its own "good direction" — these are
 // genuinely different metrics from the live API, not a single unified scale:
 //   broadband: availabilityPctOfZip — higher is BETTER (more coverage)
 //   water:     affordabilityRatioPct — higher is WORSE (more cost burden)
-//   energy:    medianBurdenPct for Black households specifically — higher is WORSE
+// Energy burden is deliberately NOT a map layer here — verified directly
+// against the live database that energy_burden_by_race has geography_id =
+// null on every row, so it's genuinely statewide/national reference data,
+// not something that can honestly be shown per county. It's still surfaced
+// in the county detail panel, clearly labeled as statewide context rather
+// than implied to be county-specific.
 const LAYER_LABEL: Record<LayerKey, string> = {
   broadband: "Broadband Availability",
   water: "Water Affordability Burden",
-  energy: "Energy Burden (Black Households)",
 };
 const LAYER_UNIT_SUFFIX: Record<LayerKey, string> = {
   broadband: "% coverage",
   water: "% of income",
-  energy: "% of income",
 };
 const LAYER_ICON: Record<LayerKey, typeof Wifi> = {
   broadband: Wifi,
   water: Droplets,
-  energy: Zap,
 };
 const VIEW_LABEL: Record<ViewKey, string> = { map: "Map", list: "County List" };
 
-// No-data fill: needs to read as a distinct, visible TILE against the dark
-// page background — the previous version (near-transparent, low-alpha hatch)
-// effectively vanished against liberation-dark, which is what made most of
-// the 83 counties look "missing" rather than just "unsampled."
-const NO_DATA_FILL = "hsl(40 20% 88% / 0.22)";
+// No-data fill: a light neutral gray, clearly distinct from both the white
+// card background and the data-color ramp below, so every one of the 83
+// counties reads as a present, distinct tile even with no data sampled yet.
+const NO_DATA_FILL = "hsl(220 10% 92%)";
+const NO_DATA_TEXT = "hsl(220 10% 60%)";
 
-// Rewritten for legibility on a DARK background — PurplBook's own ramp
-// (lightness 82->32, darker = more) works because PurplBook sits on a white
-// page; darkening a tile on a dark background makes it LESS visible, the
-// opposite of what's needed here. Lightness stays in a fixed, always-visible
-// band; SATURATION carries the intensity signal instead: low value = pale,
-// high value = vivid. Every data tile stays clearly lighter than the page
-// background regardless of magnitude.
+// Same lightness curve PurplBook itself uses (82% -> 32%, darker = more
+// intense) — this only works cleanly on a LIGHT background, which is why an
+// earlier version of this file used an inverted, saturation-driven ramp: the
+// component used to sit on the site's dark theme. Now that it sits in its
+// own white card (matching PurplBook's own light-background pattern), the
+// straightforward approach applies directly.
 function tileColor(value: number | null, layer: LayerKey): string {
   if (value === null) return NO_DATA_FILL;
   const max = layer === "broadband" ? 100 : 15;
   const t = Math.min(1, Math.max(0, value / max));
-  const saturation = 25 + t * 55;
-  const lightness = 78 - t * 18;
-  const hue = layer === "broadband" ? 152 : 14;
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+  const lightness = 82 - t * 50;
+  const hue = layer === "broadband" ? "152 40%" : "14 60%";
+  return `hsl(${hue} ${lightness}%)`;
 }
 
 function barColor(layer: LayerKey): string {
@@ -137,6 +146,11 @@ export default function UtilityCountyCartogram() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
+  // energyRows is genuinely statewide/national reference data (verified
+  // directly: every row in energy_burden_by_race has geography_id = null),
+  // so unlike waterRates/broadbandRates there is no per-county grouping to
+  // do here — the same flat list is shown in every county's detail panel,
+  // clearly labeled there as statewide context rather than county-specific.
   const { data: servicesData, isLoading: servicesLoading, isError: servicesError } = useMichiganEssentialServices();
   const { data: energyRows, isLoading: energyLoading } = useEnergyBurdenByCounty();
 
@@ -159,30 +173,9 @@ export default function UtilityCountyCartogram() {
     [servicesData]
   );
 
-  // Energy burden specific to Black households, matched by county name.
-  // If a county has multiple race rows, this picks the Black-households row;
-  // other races are still shown in the detail panel, just not used for the map fill.
-  const energyByCounty = useMemo(() => {
-    const map = new Map<string, EnergyBurdenEntry>();
-    for (const row of energyRows ?? []) {
-      if (row.racialGroup?.toLowerCase().includes("black")) map.set(row.geography, row);
-    }
-    return map;
-  }, [energyRows]);
-
-  const allEnergyByCountyName = useMemo(() => {
-    const map = new Map<string, EnergyBurdenEntry[]>();
-    for (const row of energyRows ?? []) {
-      if (!map.has(row.geography)) map.set(row.geography, []);
-      map.get(row.geography)!.push(row);
-    }
-    return map;
-  }, [energyRows]);
-
   function metricValue(countyName: string, ly: LayerKey): number | null {
     if (ly === "broadband") return countyAggregates.get(countyName)?.broadbandAvailabilityPct ?? null;
-    if (ly === "water") return countyAggregates.get(countyName)?.waterAffordabilityRatioPct ?? null;
-    return energyByCounty.get(countyName)?.medianBurdenPct ?? null;
+    return countyAggregates.get(countyName)?.waterAffordabilityRatioPct ?? null;
   }
 
   const filteredCounties = useMemo(() => {
@@ -196,8 +189,8 @@ export default function UtilityCountyCartogram() {
   }, [query, placesByCounty]);
 
   return (
-    <div className="px-4 pt-6 pb-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-liberation-cream/15 mb-4 pb-0">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 mb-4 pb-0">
         <div className="flex">
           {(Object.keys(VIEW_LABEL) as ViewKey[]).map((key) => (
             <button
@@ -205,8 +198,8 @@ export default function UtilityCountyCartogram() {
               onClick={() => setView(key)}
               className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 -mb-px transition-colors ${
                 view === key
-                  ? "text-liberation-cream border-liberation-gold"
-                  : "text-liberation-cream/40 border-transparent hover:text-liberation-cream/60"
+                  ? "text-gray-900 border-liberation-gold"
+                  : "text-gray-400 border-transparent hover:text-gray-700"
               }`}
               aria-current={view === key ? "true" : undefined}
             >
@@ -215,14 +208,14 @@ export default function UtilityCountyCartogram() {
           ))}
         </div>
         <div className="relative mb-2">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-liberation-cream/30" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find a county…"
             aria-label="Search counties"
-            className="pl-7 pr-3 py-1.5 text-xs rounded-md bg-liberation-dark/40 border border-liberation-cream/20 text-liberation-cream placeholder:text-liberation-cream/30 w-40 focus:outline-none focus:border-liberation-gold/50"
+            className="pl-7 pr-3 py-1.5 text-xs rounded-md bg-gray-100 border border-gray-300 text-gray-900 placeholder:text-gray-400 w-40 focus:outline-none focus:border-liberation-gold/50"
           />
         </div>
       </div>
@@ -239,7 +232,7 @@ export default function UtilityCountyCartogram() {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                 active
                   ? "bg-liberation-gold text-liberation-dark border-liberation-gold"
-                  : "bg-transparent text-liberation-cream/60 border-liberation-cream/20 hover:border-liberation-cream/40"
+                  : "bg-transparent text-gray-600 border-gray-300 hover:border-gray-400"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -258,7 +251,7 @@ export default function UtilityCountyCartogram() {
       )}
 
       {isError && (
-        <div role="alert" className="h-40 flex flex-col items-center justify-center gap-2 text-liberation-cream/50 text-sm border border-liberation-cream/10 rounded-lg">
+        <div role="alert" className="h-40 flex flex-col items-center justify-center gap-2 text-gray-500 text-sm border border-gray-200 rounded-lg">
           <span>Data couldn't load.</span>
           <button onClick={() => window.location.reload()} className="text-xs text-liberation-gold hover:underline">
             Try refreshing the page
@@ -288,25 +281,25 @@ export default function UtilityCountyCartogram() {
           countiesByName={countiesByName}
           waterRates={servicesData?.waterSewageRates ?? []}
           broadbandRates={servicesData?.broadbandRates ?? []}
-          allEnergyByCountyName={allEnergyByCountyName}
+          energyRows={energyRows ?? []}
           placesByCounty={placesByCounty}
         />
       )}
 
       {view === "map" && !isLoading && !isError && (
-        <div className="border-t-2 border-liberation-cream/10 mt-1">
+        <div className="border-t-2 border-gray-200 mt-1">
           {openCounty ? (
             <CountyDetailPanel
               countyName={openCounty}
               county={countiesByName.get(openCounty)}
               waterRates={(servicesData?.waterSewageRates ?? []).filter((w) => w.county === openCounty)}
               broadbandRates={(servicesData?.broadbandRates ?? []).filter((b) => b.county === openCounty)}
-              energyRows={allEnergyByCountyName.get(openCounty) ?? []}
+              energyRows={energyRows ?? []}
               places={placesByCounty.get(openCounty) ?? []}
               onClose={() => setOpenCounty(null)}
             />
           ) : (
-            <p className="text-left text-xs text-liberation-cream/40 py-6">
+            <p className="text-left text-xs text-gray-400 py-6">
               Select any county above to see its water, energy, and broadband data.
             </p>
           )}
@@ -383,9 +376,9 @@ function MapView({
               onBlur={() => setHovered(null)}
             >
               <rect
-                x={x} y={y} width={CELL} height={CELL} rx={4}
+                x={x} y={y} width={CELL} height={CELL} rx={6}
                 fill={tileColor(value, layer)}
-                stroke={isOpen ? "#A8442C" : "hsl(40 15% 82% / 0.45)"}
+                stroke={isOpen ? "#A8442C" : "#e5e7eb"}
                 strokeWidth={isOpen ? 2 : 0.75}
                 style={{ transition: "stroke 0.1s ease" }}
               />
@@ -395,8 +388,8 @@ function MapView({
                 dominantBaseline="central"
                 fontFamily="ui-monospace, monospace"
                 fontWeight={600}
-                fontSize={ABBR[name]?.length > 2 ? 8 : 9}
-                fill={value !== null ? "hsl(30 25% 18%)" : "hsl(40 15% 55%)"}
+                fontSize={ABBR[name]?.length > 2 ? 13 : 15}
+                fill={value !== null ? "#1f2937" : NO_DATA_TEXT}
                 style={{ pointerEvents: "none" }}
               >
                 {ABBR[name] ?? name.slice(0, 3).toUpperCase()}
@@ -406,10 +399,10 @@ function MapView({
         })}
       </svg>
 
-      <div className="text-left text-xs text-liberation-cream/40 mt-2 h-4" aria-live="polite">
+      <div className="text-left text-xs text-gray-400 mt-2 h-4" aria-live="polite">
         {hovered ? (
           <span>
-            <strong className="text-liberation-cream/80">{hovered} County</strong>
+            <strong className="text-gray-800">{hovered} County</strong>
             {" — "}
             {(() => {
               const v = metricValue(hovered, layer);
@@ -421,7 +414,7 @@ function MapView({
         )}
       </div>
 
-      <div className="flex gap-5 flex-wrap text-[11px] text-liberation-cream/40 py-3">
+      <div className="flex gap-5 flex-wrap text-[11px] text-gray-400 py-3">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 rounded-sm" style={{ background: tileColor(layer === "broadband" ? 100 : 15, layer) }} />
           {layer === "broadband" ? "High coverage" : "High burden"}
@@ -431,7 +424,7 @@ function MapView({
           {layer === "broadband" ? "Lower coverage" : "Lower burden"}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm border border-liberation-cream/20" style={{ background: NO_DATA_FILL }} />
+          <span className="inline-block w-3 h-3 rounded-sm border border-gray-300" style={{ background: NO_DATA_FILL }} />
           Not yet sampled
         </span>
       </div>
@@ -441,14 +434,12 @@ function MapView({
 
 // ── County List (Ledger) view ──────────────────────────────────────────────────
 // Mirrors PurplBook's LedgerView. IMPORTANT SCOPE NOTE: this lists counties
-// only. Nesting individual places (cities/villages) under their county was
-// requested, but the live michigan-essential-services function does not
-// currently return place-level records at all (verified directly against
-// the deployed source — no `places` field exists in its response). Adding
-// that requires a backend change first: a places query similar to the
-// existing counties query, filtered to level='place', plus a resolvable
-// parent-county link via geo_crosswalk. Flagging this plainly rather than
-// building UI that pretends to support data that doesn't exist yet.
+// County List view. Places are nested under their county via the
+// place->county crosswalk built from a TIGER/Line point-in-polygon join
+// (745/745 places matched — see RECONCILIATION.md). Energy burden is passed
+// through as a flat, statewide list (see the note above) — the same data is
+// shown in every county's detail panel, clearly labeled as statewide
+// reference rather than implied to be county-specific.
 
 function ListView({
   layer,
@@ -459,7 +450,7 @@ function ListView({
   countiesByName,
   waterRates,
   broadbandRates,
-  allEnergyByCountyName,
+  energyRows,
   placesByCounty,
 }: {
   layer: LayerKey;
@@ -470,7 +461,7 @@ function ListView({
   countiesByName: Map<string, CountyEntry>;
   waterRates: WaterSewageRateEntry[];
   broadbandRates: BroadbandRateEntry[];
-  allEnergyByCountyName: Map<string, EnergyBurdenEntry[]>;
+  energyRows: EnergyBurdenEntry[];
   placesByCounty: Map<string, PlaceEntry[]>;
 }) {
   const max = useMemo(() => {
@@ -483,7 +474,7 @@ function ListView({
   }, [counties, layer, metricValue]);
 
   if (counties.length === 0) {
-    return <p className="text-xs text-liberation-cream/40 py-6">No counties or places match that search.</p>;
+    return <p className="text-xs text-gray-400 py-6">No counties or places match that search.</p>;
   }
 
   return (
@@ -496,25 +487,25 @@ function ListView({
         const places = placesByCounty.get(name) ?? [];
 
         return (
-          <div key={name} role="listitem" className="border-b border-liberation-cream/10">
+          <div key={name} role="listitem" className="border-b border-gray-200">
             <button
               onClick={() => setOpenCounty(isOpen ? null : name)}
               aria-expanded={isOpen}
               className="w-full flex items-center gap-3 py-2.5 text-left"
             >
-              <span className={`flex-shrink-0 w-3.5 h-3.5 text-liberation-cream/25 transition-transform ${isOpen ? "rotate-90 text-liberation-gold" : ""}`}>
+              <span className={`flex-shrink-0 w-3.5 h-3.5 text-gray-400 transition-transform ${isOpen ? "rotate-90 text-liberation-gold" : ""}`}>
                 ▸
               </span>
-              <span className={`font-bold text-sm flex-shrink-0 w-28 ${isEmpty ? "text-liberation-cream/35" : "text-liberation-cream"}`}>
+              <span className={`font-bold text-sm flex-shrink-0 w-28 ${isEmpty ? "text-gray-400" : "text-gray-900"}`}>
                 {name}
                 {places.length > 0 && (
-                  <span className="ml-1.5 text-[10px] font-normal text-liberation-cream/35">({places.length})</span>
+                  <span className="ml-1.5 text-[10px] font-normal text-gray-400">({places.length})</span>
                 )}
               </span>
-              <span className="flex-1 h-1.5 rounded-full bg-liberation-cream/10 overflow-hidden max-w-[160px]">
+              <span className="flex-1 h-1.5 rounded-full bg-gray-50 overflow-hidden max-w-[160px]">
                 <span className="block h-full rounded-full" style={{ width: `${widthPct}%`, background: barColor(layer) }} />
               </span>
-              <span className={`text-xs font-mono w-16 text-right flex-shrink-0 ${isEmpty ? "text-liberation-cream/30" : "text-liberation-cream/70"}`}>
+              <span className={`text-xs font-mono w-16 text-right flex-shrink-0 ${isEmpty ? "text-gray-400" : "text-gray-700"}`}>
                 {isEmpty ? "—" : `${value}%`}
               </span>
             </button>
@@ -524,7 +515,7 @@ function ListView({
                 county={countiesByName.get(name)}
                 waterRates={waterRates.filter((w) => w.county === name)}
                 broadbandRates={broadbandRates.filter((b) => b.county === name)}
-                energyRows={allEnergyByCountyName.get(name) ?? []}
+                energyRows={energyRows}
                 places={places}
                 onClose={() => setOpenCounty(null)}
                 compact
@@ -556,7 +547,7 @@ function TruncatedList<T>({
 
   return (
     <>
-      <ul className="space-y-1 text-xs text-liberation-cream/60">
+      <ul className="space-y-1 text-xs text-gray-600">
         {visible.map((item) => (
           <li key={keyFn(item)}>{render(item)}</li>
         ))}
@@ -580,7 +571,7 @@ const PIE_COLORS = ["hsl(152 45% 58%)", "hsl(14 65% 62%)", "hsl(40 55% 62%)", "h
 
 function MiniPie({ data }: { data: Array<{ name: string; value: number }> }) {
   if (data.length === 0 || data.every((d) => d.value === 0)) {
-    return <p className="text-xs text-liberation-cream/40">Not enough data to chart.</p>;
+    return <p className="text-xs text-gray-400">Not enough data to chart.</p>;
   }
   return (
     <div className="flex items-center gap-3">
@@ -600,7 +591,7 @@ function MiniPie({ data }: { data: Array<{ name: string; value: number }> }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <ul className="text-[11px] text-liberation-cream/60 space-y-0.5">
+      <ul className="text-[11px] text-gray-600 space-y-0.5">
         {data.map((d, i) => (
           <li key={d.name} className="flex items-center gap-1.5">
             <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
@@ -706,16 +697,16 @@ function CountyDetailPanel({
     <div className={compact ? "pb-4 pl-6" : "py-4"} aria-live="polite">
       {!compact && (
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-liberation-cream">{countyName} County</h4>
-          <button onClick={onClose} className="text-xs text-liberation-cream/40 hover:text-liberation-cream/70">
+          <h4 className="font-semibold text-gray-900">{countyName} County</h4>
+          <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-800">
             Close ✕
           </button>
         </div>
       )}
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
             <Wifi className="w-3.5 h-3.5" /> Broadband
           </div>
           {broadbandRates.length > 0 ? (
@@ -736,12 +727,12 @@ function CountyDetailPanel({
               </div>
             </>
           ) : (
-            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
+            <p className="text-xs text-gray-400">Not yet sampled in this county.</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
             <Droplets className="w-3.5 h-3.5" /> Water & Sewage
           </div>
           {waterRates.length > 0 ? (
@@ -763,23 +754,30 @@ function CountyDetailPanel({
               </div>
             </>
           ) : (
-            <p className="text-xs text-liberation-cream/40">Not yet sampled in this county.</p>
+            <p className="text-xs text-gray-400">Not yet sampled in this county.</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-2">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
             <Zap className="w-3.5 h-3.5" /> Energy Burden by Race
           </div>
-          {racePopulationPie.length > 0 && <MiniPie data={racePopulationPie} />}
+          {racePopulationPie.length > 0 && (
+            <>
+              <div className="text-[11px] text-gray-500 mb-1">{countyName} population by race:</div>
+              <MiniPie data={racePopulationPie} />
+            </>
+          )}
           {energyRows.length > 0 ? (
-            <div className="mt-2">
-              <div className="text-[11px] text-liberation-cream/50 mb-1">Median energy burden (% of income), by race:</div>
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <div className="text-[11px] text-gray-500 mb-1">
+                Statewide reference (not specific to {countyName} — energy burden isn't tracked at the county level in this data source):
+              </div>
               <TruncatedList
                 items={energyRows}
-                keyFn={(r) => r.id}
+                keyFn={(r: EnergyBurdenEntry) => r.id}
                 initialCount={3}
-                render={(r) => (
+                render={(r: EnergyBurdenEntry) => (
                   <>
                     {r.racialGroup}
                     {r.medianBurdenPct !== null && `: ${r.medianBurdenPct}%`}
@@ -789,7 +787,7 @@ function CountyDetailPanel({
               />
             </div>
           ) : (
-            <p className="text-xs text-liberation-cream/40 mt-2">Burden-by-race not yet sampled in this county.</p>
+            <p className="text-xs text-gray-400 mt-2">Statewide energy burden reference data unavailable.</p>
           )}
         </div>
       </div>
@@ -797,8 +795,8 @@ function CountyDetailPanel({
       {/* Energy providers & rate changes — lets a person connect their own
           utility to recent rate actions and, where available, that utility's
           rate history over time. */}
-      <div className="mt-3 rounded-lg border border-liberation-cream/10 bg-liberation-dark/30 p-3">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-liberation-cream/70 mb-1.5">
+      <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-1.5">
           <TrendingUp className="w-3.5 h-3.5" /> Energy Providers & Rate Changes
         </div>
         {countyRateActions.length > 0 ? (
@@ -809,15 +807,15 @@ function CountyDetailPanel({
               initialCount={3}
               render={(a: RateActionEntry) => (
                 <>
-                  <strong className="text-liberation-cream/80">{a.utility}</strong> — {a.actionType || "rate action"}
+                  <strong className="text-gray-800">{a.utility}</strong> — {a.actionType || "rate action"}
                   {a.residentialPctIncrease !== null && `, ${a.residentialPctIncrease}% residential increase`}
                   {a.effectiveDate && ` (effective ${a.effectiveDate})`}
                 </>
               )}
             />
             {utilityRateHistory.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-liberation-cream/10">
-                <div className="text-[11px] text-liberation-cream/50 mb-1">Rate over time:</div>
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <div className="text-[11px] text-gray-500 mb-1">Rate over time:</div>
                 <TruncatedList
                   items={utilityRateHistory}
                   keyFn={(h: RateHistoryEntry) => h.id}
@@ -833,14 +831,14 @@ function CountyDetailPanel({
             )}
           </>
         ) : (
-          <p className="text-xs text-liberation-cream/40">
+          <p className="text-xs text-gray-400">
             No rate actions on file for {countyName} specifically — most filings are utility-wide. See the Rate Actions tab for the full statewide list.
           </p>
         )}
       </div>
 
       {county && (
-        <div className="mt-3 text-xs text-liberation-cream/40">
+        <div className="mt-3 text-xs text-gray-400">
           {county.medianHouseholdIncome !== null && <span>County median household income: ${county.medianHouseholdIncome.toLocaleString()}</span>}
           {county.povertyRatePct !== null && <span> · Poverty rate: {county.povertyRatePct}%</span>}
         </div>
@@ -848,7 +846,7 @@ function CountyDetailPanel({
 
       {places.length > 0 && (
         <div className="mt-3">
-          <div className="text-xs font-medium text-liberation-cream/70 mb-1.5">
+          <div className="text-xs font-medium text-gray-700 mb-1.5">
             Places in this county ({places.length})
           </div>
           <TruncatedList
