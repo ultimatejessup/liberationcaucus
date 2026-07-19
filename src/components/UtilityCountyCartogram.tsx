@@ -244,7 +244,7 @@ export default function UtilityCountyCartogram() {
 
       {isLoading && (
         <div className="space-y-3" aria-busy="true" aria-label="Loading essential services data">
-          <Skeleton className="h-64 w-full rounded-lg" />
+          <Skeleton className="h-[500px] w-full max-w-2xl rounded-lg" />
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-4 w-1/3" />
         </div>
@@ -334,7 +334,7 @@ function MapView({
     <>
       <svg
         viewBox={`0 0 ${GRID_COLS * (CELL + GAP)} ${GRID_ROWS * (CELL + GAP)}`}
-        className="w-full block"
+        className="w-full max-w-2xl block"
         style={{ height: "auto", overflow: "visible" }}
         role="group"
         aria-label="Michigan county cartogram"
