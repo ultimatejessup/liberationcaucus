@@ -241,8 +241,14 @@ const UtilityRateTracker = () => {
             )}
 
             {!isLoading && !isError && data && (
-              <Tabs defaultValue="rate-actions" className="w-full">
+              <Tabs defaultValue="county-map" className="w-full">
                 <TabsList className="bg-liberation-cream/5 border border-liberation-cream/10 flex-wrap h-auto gap-1 mb-8">
+                  <TabsTrigger
+                    value="county-map"
+                    className="data-[state=active]:bg-liberation-gold data-[state=active]:text-liberation-dark text-liberation-cream/70"
+                  >
+                    <Map className="w-4 h-4 mr-1.5" /> County Map
+                  </TabsTrigger>
                   <TabsTrigger
                     value="rate-actions"
                     className="data-[state=active]:bg-liberation-gold data-[state=active]:text-liberation-dark text-liberation-cream/70"
@@ -272,12 +278,6 @@ const UtilityRateTracker = () => {
                     className="data-[state=active]:bg-liberation-gold data-[state=active]:text-liberation-dark text-liberation-cream/70"
                   >
                     <Calendar className="w-4 h-4 mr-1.5" /> Commission Meetings
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="county-map"
-                    className="data-[state=active]:bg-liberation-gold data-[state=active]:text-liberation-dark text-liberation-cream/70"
-                  >
-                    <Map className="w-4 h-4 mr-1.5" /> County Map
                   </TabsTrigger>
                 </TabsList>
 
