@@ -23,6 +23,8 @@ import {
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import UtilityCountyCartogram from "@/components/UtilityCountyCartogram";
 import { Map } from "lucide-react"; // add to the existing lucide-react import line
+import RateHistoryChart from "@/components/RateHistoryChart";
+
 
 function StatBlock({ label, value }: { label: string; value: string | number | null }) {
   if (value === null || value === "") return null;
@@ -336,13 +338,7 @@ const UtilityRateTracker = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {data.rateHistory.map((row) => (
-                        <div key={row.id} className="rounded-lg border border-liberation-gold/20 bg-liberation-cream/5 p-4">
-                          {row.utilityAndYear}
-                        </div>
-                      ))}
-                    </div>
+                    <RateHistoryChart rows={data.rateHistory} />
                   )}
                 </TabsContent>
 
