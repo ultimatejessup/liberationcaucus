@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 // Matches the ACTUAL deployed michigan-essential-services edge function
-// (Supabase, v2, ACTIVE) — verified by fetching the live function source
-// directly (Supabase:get_edge_function), not inferred from an earlier
-// chat's description of a draft. The draft queried a table called
-// `essential_services_burden` that never existed in the live schema; the
-// deployed version was corrected to query water_sewage_rates and
-// broadband_availability_rates directly instead. If you're extending this,
-// verify against the live function again rather than trusting prior notes —
-// this same mistake (building against a described-but-unshipped shape)
-// happened once already in this project.
+// (Supabase, v6, ACTIVE — verified by fetching the live function source
+// directly via Supabase:get_edge_function, not inferred from a description).
+// v6 adds `serviceCounties` to each water/sewage rate entry (see
+// WaterSewageRateEntry below) — verify against the live function again
+// before extending this further; a described-but-unshipped shape has caused
+// real bugs in this project before.
 
 export interface CountyEntry {
   geoid: string;
@@ -47,7 +44,10 @@ export interface WaterSewageRateEntry {
   id: string;
   provider: string;
   serviceType: string;
-  county: string; // plain name string — NOT a foreign key on this response; join client-side
+  county: string; // PRIMARY county only (the city this rate was researched for) — kept for backward compat
+  serviceCounties: string[]; // NEW (v6 edge function, 2026-07-20): every county this utility actually serves,
+  // researched directly per utility (not assumed) — see water_sewage_service_counties migration notes.
+  // Use this, not `county`, for anything that should reflect the utility's real footprint (e.g. the map layer).
   municipalityServiceArea: string;
   effectiveDate: string;
   customerChargeMonthly: number | null;
@@ -162,11 +162,21 @@ export function aggregateByCounty(
 ): Map<string, CountyAggregate> {
   const map = new Map<string, CountyAggregate>();
 
+  // Expand each water record across every county it actually serves (not
+  // just the primary/originally-sampled one) — a rate record with a real
+  // multi-county footprint (e.g. Grand Rapids Water System serves Kent AND
+  // Ottawa) now contributes its affordability figure to both counties, not
+  // just the one where the sampled city sits. Falls back to `county` alone
+  // if `serviceCounties` is ever missing/empty, so this degrades safely
+  // rather than dropping the record entirely.
   const waterByCounty = new Map<string, number[]>();
   for (const w of waterRates) {
-    if (!w.county || w.affordabilityRatioPct === null) continue;
-    if (!waterByCounty.has(w.county)) waterByCounty.set(w.county, []);
-    waterByCounty.get(w.county)!.push(w.affordabilityRatioPct);
+    if (w.affordabilityRatioPct === null) continue;
+    const counties = w.serviceCounties?.length ? w.serviceCounties : w.county ? [w.county] : [];
+    for (const county of counties) {
+      if (!waterByCounty.has(county)) waterByCounty.set(county, []);
+      waterByCounty.get(county)!.push(w.affordabilityRatioPct);
+    }
   }
 
   const broadbandByCounty = new Map<string, number[]>();
