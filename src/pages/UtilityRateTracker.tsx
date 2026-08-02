@@ -24,6 +24,7 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import UtilityCountyCartogram from "@/components/UtilityCountyCartogram";
 import { Map } from "lucide-react"; // add to the existing lucide-react import line
 import RateHistoryChart from "@/components/RateHistoryChart";
+import RateActionsTimeline from "@/components/RateActionsTimeline";
 
 
 function StatBlock({ label, value }: { label: string; value: string | number | null }) {
@@ -284,6 +285,7 @@ const UtilityRateTracker = () => {
                 </TabsList>
 
                 <TabsContent value="rate-actions" className="space-y-4">
+                  <RateActionsTimeline actions={data.rateActions} />
                   {data.rateActions.map((action) => (
                     <RateActionCard key={action.id} action={action} />
                   ))}
