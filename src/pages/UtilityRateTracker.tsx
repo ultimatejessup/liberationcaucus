@@ -47,8 +47,8 @@ function RateActionCard({ action }: { action: RateAction }) {
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div>
-          <h3 className="font-semibold text-gray-900">{action.title}</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="font-semibold text-green-900">{action.title}</h3>
+          <p className="text-sm text-green-500">
             {action.utility}
             {action.caseNumber && ` · Case ${action.caseNumber}`}
           </p>
