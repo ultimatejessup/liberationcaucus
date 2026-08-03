@@ -51,14 +51,14 @@ export default function RateActionsTimeline({ actions }: { actions: RateAction[]
                     className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 border-liberation-dark"
                     style={{ background: color }}
                   />
-                  <div className="text-xs text-liberation-cream/50 mb-0.5">
+                  <div className="text-xs text-liberation-black/50 mb-0.5">
                     {date}
-                    <span className="ml-1.5 text-liberation-cream/35">
+                    <span className="ml-1.5 text-liberation-black/35">
                       {isEffective ? "effective" : "decided"}
                     </span>
                   </div>
-                  <div className="text-sm text-liberation-cream/90 font-medium">{action.title}</div>
-                  <div className="text-xs text-liberation-cream/50 mt-0.5">
+                  <div className="text-sm text-liberation-black/90 font-medium">{action.title}</div>
+                  <div className="text-xs text-liberation-black/50 mt-0.5">
                     {action.utility}
                     {action.residentialPctIncrease !== null && (
                       <span className="text-liberation-red/80"> · +{action.residentialPctIncrease}% residential</span>
