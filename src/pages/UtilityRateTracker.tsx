@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Construction,
   Map,
+  Zap,
 } from "lucide-react";
 import {
   useUtilityRateTracker,
@@ -47,8 +48,8 @@ function RateActionCard({ action }: { action: RateAction }) {
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div>
-          <h3 className="font-semibold text-green-900">{action.title}</h3>
-          <p className="text-sm text-green-500">
+          <h3 className="font-semibold text-gray-900">{action.title}</h3>
+          <p className="text-sm text-gray-500">
             {action.utility}
             {action.caseNumber && ` · Case ${action.caseNumber}`}
           </p>
@@ -212,6 +213,9 @@ const UtilityRateTracker = () => {
       <main className="pt-20 bg-white min-h-screen">
         <section className="py-10 md:py-14 border-b border-gray-100" ref={heroRef}>
           <div className={`container mx-auto px-6 max-w-5xl animate-on-scroll ${heroVisible ? "visible" : ""}`}>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-liberation-gold/10 mb-4">
+              <Zap className="w-6 h-6 text-liberation-gold" />
+            </div>
             <span className="text-liberation-gold font-semibold text-xs tracking-widest uppercase">
               Liberation Caucus
             </span>
