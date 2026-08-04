@@ -13,15 +13,15 @@ import { Menu, X, ScrollText, ChevronDown, UserPlus, Layers, BookOpen, Zap } fro
 
 const tools = [
   {
-    label: "Purple Book",
+    label: "purplbook",
     href: "/purplbook",
     description: "Black caucus legislative directory — federal, state, and local.",
     icon: ScrollText,
   },
   {
-    label: "Policy Library",
-    href: "/policy-library",
-    description: "Fact sheets and policy documents, organized by campaign.",
+    label: "Policy Ledger",
+    href: "/policy-ledger",
+    description: "Tracked legislation by level of government, plus policy briefs.",
     icon: BookOpen,
   },
   {
