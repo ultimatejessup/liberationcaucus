@@ -76,6 +76,24 @@ export interface BroadbandRateEntry {
   dataFreshness: string;
 }
 
+// NEW (v7 edge function, 2026-08-04): real Michigan county-level energy
+// burden from the DOE/NREL LEAD Tool. Genuinely per-county -- unlike the
+// energy_burden_by_race data surfaced by useEnergyBurdenByCounty.ts, which
+// is ACEEE/national-metro-only. Deliberately has NO race field -- county
+// race composition comes from CountyEntry.raceBreakdown above and should be
+// shown alongside this, never merged into a derived "burden by race" number
+// the underlying source doesn't actually support.
+export interface EnergyBurdenLeadEntry {
+  id: string;
+  county: string;
+  fplBracket: string; // '0-100%' | '100-150%' | '150-200%' | '200-400%' | '400%+' | 'ALL' (weighted county-wide figure)
+  estimatedHouseholds: number | null;
+  avgAnnualHouseholdIncome: number | null;
+  avgAnnualEnergyCost: number | null;
+  energyBurdenPct: number | null;
+  dataYear: number | null;
+}
+
 export interface ServiceProviderEntry {
   id: string;
   providerId: string;
@@ -101,6 +119,7 @@ interface MichiganEssentialServicesResponse {
   places: PlaceEntry[];
   waterSewageRates: WaterSewageRateEntry[];
   broadbandRates: BroadbandRateEntry[];
+  energyBurdenLead: EnergyBurdenLeadEntry[];
   serviceProviders: ServiceProviderEntry[];
   zctaImportStatus: ZctaImportStatus;
   fetchedAt: string;
@@ -152,6 +171,27 @@ export function groupPlacesByCounty(places: PlaceEntry[]): Map<string, PlaceEntr
   }
   for (const list of map.values()) {
     list.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return map;
+}
+
+// Groups LEAD burden rows by county, with 'ALL' (the weighted county-wide
+// figure) sorted first so callers can grab [0] for the headline number,
+// followed by the five FPL brackets in ascending income order for a
+// low-to-high income-tier breakdown.
+const FPL_BRACKET_ORDER = ["ALL", "0-100%", "100-150%", "150-200%", "200-400%", "400%+"];
+
+export function groupEnergyBurdenLeadByCounty(
+  rows: EnergyBurdenLeadEntry[]
+): Map<string, EnergyBurdenLeadEntry[]> {
+  const map = new Map<string, EnergyBurdenLeadEntry[]>();
+  for (const r of rows) {
+    if (!r.county) continue;
+    if (!map.has(r.county)) map.set(r.county, []);
+    map.get(r.county)!.push(r);
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => FPL_BRACKET_ORDER.indexOf(a.fplBracket) - FPL_BRACKET_ORDER.indexOf(b.fplBracket));
   }
   return map;
 }
