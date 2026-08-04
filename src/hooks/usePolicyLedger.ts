@@ -11,6 +11,9 @@ export interface LedgerFactSheet {
   id: string;
   title: string;
   summary: string;
+  /** Full body text for the in-app "web brief" reading view. Empty string
+   * when a sheet only has a PDF and no web-native version yet. */
+  content: string;
   date: string;
   relatedLink: string;
   files: LedgerFile[];
