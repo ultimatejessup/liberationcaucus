@@ -106,18 +106,53 @@ function RateActionCard({ action }: { action: RateAction }) {
   );
 }
 
+// Group labels/colors made visible in the table itself — previously
+// `comparison_group` only drove an invisible highlight + a ★ for Michigan,
+// so a reader had no way to see WHY a given row was included (peer state?
+// suggested comparison? the national benchmark?) or to know that a row with
+// no state name is the National Benchmark rather than a missing record.
+// Fixed 2026-08-04 after review found the National Benchmark row (state_id
+// is null by design — it isn't a state) rendering as a blank cell with its
+// group label never shown anywhere.
+const GROUP_BADGE_STYLE: Record<string, string> = {
+  "Michigan (Focus)": "text-liberation-gold border-liberation-gold/40 bg-liberation-gold/10",
+  "National Benchmark": "text-gray-700 border-gray-400 bg-gray-100",
+  "Peer State": "text-gray-500 border-gray-300",
+  "Suggested Comparison": "text-gray-500 border-gray-300",
+};
+
 function StateComparisonRow({ row }: { row: StateComparison }) {
   const isFocus = row.group === "Michigan (Focus)";
+  const isBenchmark = row.group === "National Benchmark";
+  // Falls back to the comparison-group label whenever there's no state name
+  // to show (currently only the National Benchmark row, by design — it
+  // isn't tied to any single state) rather than rendering a blank cell.
+  const displayName = row.state || row.group || "—";
   return (
     <tr className={isFocus ? "bg-liberation-gold/10" : ""}>
       <td className="py-3 px-3 font-medium text-gray-900">
-        {row.state} {isFocus && <span className="text-liberation-gold">★</span>}
+        <span className={isBenchmark ? "italic text-gray-600" : ""}>{displayName}</span>{" "}
+        {isFocus && <span className="text-liberation-gold">★</span>}
+        {row.group && (
+          <Badge
+            variant="outline"
+            className={`ml-2 text-[10px] py-0 px-1.5 ${GROUP_BADGE_STYLE[row.group] ?? "text-gray-500 border-gray-300"}`}
+          >
+            {row.group}
+          </Badge>
+        )}
       </td>
       <td className="py-3 px-3 text-gray-700">{row.avgRateCentsPerKwh}¢</td>
       <td className="py-3 px-3 text-gray-700">
         {row.pctAboveBelowNational !== null
           ? `${row.pctAboveBelowNational > 0 ? "+" : ""}${row.pctAboveBelowNational}%`
           : "—"}
+      </td>
+      <td className="py-3 px-3 text-gray-700">
+        {row.avgMonthlyBill !== null ? `$${row.avgMonthlyBill}` : "—"}
+        {row.avgMonthlyUsageKwh !== null && (
+          <span className="text-gray-400 text-xs"> ({row.avgMonthlyUsageKwh} kWh/mo)</span>
+        )}
       </td>
       <td className="py-3 px-3 text-gray-500">{row.marketStructure}</td>
     </tr>
@@ -328,6 +363,7 @@ const UtilityRateTracker = () => {
                           <th className="text-left py-3 px-3 text-gray-500 font-semibold">State</th>
                           <th className="text-left py-3 px-3 text-gray-500 font-semibold">Rate (¢/kWh)</th>
                           <th className="text-left py-3 px-3 text-gray-500 font-semibold">vs. National</th>
+                          <th className="text-left py-3 px-3 text-gray-500 font-semibold">Avg. Bill</th>
                           <th className="text-left py-3 px-3 text-gray-500 font-semibold">Market</th>
                         </tr>
                       </thead>
@@ -341,7 +377,11 @@ const UtilityRateTracker = () => {
                     </table>
                   </div>
                   <p className="mt-3 text-xs text-gray-400">
-                    ★ indicates Michigan, the focus state for this tracker.
+                    ★ indicates Michigan, the focus state for this tracker. "National Benchmark" is the U.S.
+                    average (EIA Electric Power Monthly), not a state — every other row is compared against it.
+                    Michigan's per-kWh rate runs about 20% above that benchmark, but its typical monthly bill is
+                    lower than the national average, since Michigan households use less electricity per month —
+                    rate and bill move in opposite directions here, so both are shown rather than rate alone.
                   </p>
                 </TabsContent>
 
