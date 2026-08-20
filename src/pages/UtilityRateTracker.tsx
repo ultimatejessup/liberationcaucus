@@ -397,9 +397,8 @@ const UtilityRateTracker = () => {
                       <Construction className="w-8 h-8 text-liberation-gold/60 mx-auto mb-3" />
                       <p className="text-gray-700 font-medium">Data collection in progress</p>
                       <p className="text-gray-400 text-sm mt-1 max-w-md mx-auto">
-                        Historical year-over-year rate data for DTE and Consumers Energy is being
-                        compiled. Check back soon, or see the Rate Actions tab for the latest
-                        approved cases.
+                        Monthly rate history is being compiled. Check back soon, or see the Rate
+                        Actions tab for the latest approved cases.
                       </p>
                     </div>
                   ) : (
