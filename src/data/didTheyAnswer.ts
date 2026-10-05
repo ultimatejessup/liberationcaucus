@@ -44,6 +44,9 @@ export const ELECTION_AT = "2026-11-03T00:00:00-05:00";
 
 export const VOTER_URL = "https://mvic.sos.state.mi.us/";
 export const DEBATE_ARTICLE_URL = "https://www.woodtv.com/news/elections/governor-candidates-to-debate-at-wood-tv8/";
+// Public Google Drive folder with the social graphics (one per question, in
+// X, Facebook and Instagram sizes). Its sharing must be "Anyone with the link".
+export const CARDS_URL = "https://drive.google.com/drive/folders/1DGX2thpfkyrOWq74vtanHgZSKxA_YSsl";
 // Direct link to WOOD TV8's "Michigan gubernatorial debate" live stream on
 // YouTube (Tue, Oct 6, 2026, 7 p.m. ET). Confirmed Oct 4, 2026.
 export const WATCH_URL = "https://www.youtube.com/live/-EPDHDaW_5s";
