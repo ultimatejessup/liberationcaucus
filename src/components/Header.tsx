@@ -30,6 +30,12 @@ const tools = [
     description: "Michigan MPSC rate cases and energy burden data.",
     icon: Zap,
   },
+  {
+    label: "Did They Answer",
+    href: "/did-they-answer",
+    description: "Candidate tracker on institutional racism",
+    icon: ScrollText,
+  },
 ];
 
 const membershipLinks = [
