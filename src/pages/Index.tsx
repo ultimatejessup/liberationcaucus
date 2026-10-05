@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import EmailSignupPopup from "@/components/EmailSignupPopup";
 import Header from "@/components/Header";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import HeroSection from "@/components/HeroSection";
 import FredomSummerSection from "@/components/FredomSummerSection";
 import PartnersSection from "@/components/PartnersSection";
@@ -23,8 +24,9 @@ const Index = () => {
       <EmailSignupPopup />
       <Header />
       
-      <main>
-        <HeroSection />
+      <main>    
+        <AnnouncementBar />
+        <HeroSection />    
         <FredomSummerSection />
         <PartnersSection />
         
