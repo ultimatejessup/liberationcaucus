@@ -19,6 +19,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PurplBook from "./pages/PurplBook";
 import Councils from "./pages/Councils";
 import UtilityRateTracker from "./pages/UtilityRateTracker";
+import DidTheyAnswer from "./pages/DidTheyAnswer";
 
 const queryClient = new QueryClient();
 
