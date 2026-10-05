@@ -39,6 +39,12 @@ export interface CandidateLetter {
   signoff: string[];
 }
 
+export interface DebateQuestion {
+  id: string;
+  topic: string;
+  text: string;
+}
+
 export const DEBATE_AT = "2026-10-06T19:00:00-04:00";
 export const ELECTION_AT = "2026-11-03T00:00:00-05:00";
 
@@ -77,7 +83,7 @@ export const candidates: CandidateLetter[] = [
       },
       {
         topic: "Timeline",
-        text: "What does meaningful institutional change look like? What is your timeline for execution?",
+        text: "What does meaningful institutional change look like, and what is the timeline for execution?",
       },
     ],
     letter: [
@@ -112,7 +118,7 @@ export const candidates: CandidateLetter[] = [
     questions: [
       {
         topic: "Reparations",
-        text: "Do you support reparations for Black Michiganders? Specifically, do you support the lineage restrictions in House Bill 6111-6113, introduced by Donavan McKinney? Will you sign similar legislation as Governor?",
+        text: "Do you support reparations for Black Michiganders? Do you support the lineage restrictions in House Bill 6111-6113, and would you sign similar legislation as governor?",
       },
       {
         topic: "Full employment",
@@ -120,19 +126,19 @@ export const candidates: CandidateLetter[] = [
       },
       {
         topic: "Healthcare",
-        text: "As Congressman, you voted for the One Big Beautiful Bill Act, quoted as \"...the One Big Beautiful bill restores fiscal responsibility to Washington while safeguarding vital programs like Social Security, Medicare, and Medicaid..\" Will you protect or roll back Michigan's Medicaid expansion as Governor?",
+        text: "You voted for the One Big Beautiful Bill Act. Will you protect or roll back Michigan's Medicaid expansion as governor?",
       },
       {
         topic: "Voting rights",
-        text: "Will you support restoring the Voting Rights Act protections lost after Shelby County v Holder before leaving Congress in 2026? As governor, will you oppose any barriers to voting in Michigan, specifically in majority-Black communities?",
+        text: "Will you support restoring the Voting Rights Act protections lost after Shelby County v. Holder? As governor, will you oppose any barriers to voting in Michigan, specifically in majority-Black communities?",
       },
       {
         topic: "Freedom of speech",
-        text: "You voted in support of the resolution honoring Charlie Kirk; would you protect the right of Black workers, students, educators, and organizers to protest, teach Black history, and criticize government without retaliation?",
+        text: "You voted in support of the resolution honoring Charlie Kirk. Would you protect the right of Black workers, students, educators, and organizers to protest, teach Black history, and criticize government without retaliation?",
       },
       {
         topic: "Cost of living",
-        text: "You've voted to continue the U.S. incursion in Iran multiple times. How will you protect the income of Black working families and businesses that are paying the price for your decision at the pump?",
+        text: "You've voted to continue the U.S. incursion in Iran multiple times. How will you protect the income of Black working families and businesses paying the price for that decision at the pump?",
       },
     ],
     letter: [
@@ -151,5 +157,25 @@ export const candidates: CandidateLetter[] = [
       "In the fold for the long run,",
     ],
     signoff: ["Brandon A. Jessup", "Liberation Caucus"],
+  },
+];
+
+// Neutral questions worded identically for both candidates and matched to the
+// debate's announced topics (technology, healthcare, immigration, economy).
+export const debateQuestions: DebateQuestion[] = [
+  {
+    id: "economy",
+    topic: "Economy",
+    text: "Will you commit to a specific, published target for closing the gap between Black and white unemployment in Michigan, with public reporting on state hiring, promotion, and contracting by race? #DidTheyAnswer",
+  },
+  {
+    id: "healthcare",
+    topic: "Healthcare",
+    text: "Will you commit to preserving Michigan's Medicaid expansion, and how would you cover the state's share if federal rules change? #DidTheyAnswer",
+  },
+  {
+    id: "state-government",
+    topic: "State government",
+    text: "Will you publish workforce demographics by agency and pay grade, and report hiring, promotion, and discipline by race? #DidTheyAnswer",
   },
 ];
