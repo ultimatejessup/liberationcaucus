@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,10 +12,9 @@ import {
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Check, Copy, ExternalLink, Tv, Vote } from "lucide-react";
+import { Check, ChevronDown, Copy, ExternalLink, Tv, Vote } from "lucide-react";
 import {
   candidates,
-  debateQuestions,
   DEBATE_AT,
   DEBATE_ARTICLE_URL,
   ELECTION_AT,
@@ -23,6 +22,7 @@ import {
   VOTER_URL,
   WATCH_URL,
   type CandidateLetter,
+  type LetterQuestion,
   type ResponseStatus,
 } from "@/data/didTheyAnswer";
 
@@ -212,48 +212,7 @@ function CandidateCard({ c, now }: { c: CandidateLetter; now: number }) {
         <h3 className="mb-3 text-sm font-semibold text-gray-900">
           The {c.questions.length === 6 ? "six" : c.questions.length === 4 ? "four" : c.questions.length} questions asked
         </h3>
-        <ol className="mb-5 space-y-3">
-          {c.questions.map((q, i) => (
-            <li key={q.topic} className="flex gap-3">
-              <span
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold ${
-                  q.answer
-                    ? "border-liberation-green/40 bg-liberation-green/10 text-liberation-green"
-                    : "border-gray-300 text-gray-500"
-                }`}
-                aria-hidden="true"
-              >
-                {q.answer ? <Check className="h-3 w-3" /> : i + 1}
-              </span>
-              <div className="min-w-0 text-sm text-gray-700">
-                <strong className="text-gray-900">{q.topic}.</strong> {q.text}
-                <div className="mt-1 text-xs">
-                  {q.answer ? (
-                    <span className="font-semibold text-liberation-green">
-                      Answered {q.answer.where === "on_air" ? "on air" : "in writing"}
-                      {q.answer.note ? `: ${q.answer.note}` : ""}
-                      {q.answer.url && (
-                        <>
-                          {" "}
-                          <a
-                            href={q.answer.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline underline-offset-2"
-                          >
-                            Read it
-                          </a>
-                        </>
-                      )}
-                    </span>
-                  ) : (
-                    <span className="text-gray-500">Awaiting answer</span>
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <QuestionTable candidate={c} />
 
         <p className="mb-4 rounded-r-lg border-l-4 border-amber-600/70 bg-gray-50 px-4 py-2.5 text-[13px] text-gray-600">
           {c.note}
@@ -294,38 +253,128 @@ function CandidateCard({ c, now }: { c: CandidateLetter; now: number }) {
   );
 }
 
-function QuestionCard({ topic, text }: { topic: string; text: string }) {
-  const [copied, setCopied] = useState(false);
+async function copyQuestion(text: string) {
+  try {
+    await navigator.clipboard.writeText(`${text} #DidTheyAnswer`);
+    toast({ title: "Copied", description: "The question is on your clipboard." });
+  } catch {
+    toast({
+      title: "Copy blocked by this browser",
+      description: "Select the question text and copy it manually.",
+      variant: "destructive",
+    });
+  }
+}
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast({ title: "Copied", description: "The question is on your clipboard." });
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      toast({
-        title: "Copy blocked by this browser",
-        description: "Select the question text and copy it manually.",
-        variant: "destructive",
-      });
-    }
-  };
+function AnswerStatus({ q }: { q: LetterQuestion }) {
+  if (!q.answer) return <span className="text-gray-500">Awaiting answer</span>;
+  return (
+    <span className="font-semibold text-liberation-green">
+      Answered {q.answer.where === "on_air" ? "on air" : "in writing"}
+      {q.answer.note ? `: ${q.answer.note}` : ""}
+      {q.answer.url && (
+        <>
+          {" "}
+          <a href={q.answer.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+            Read it
+          </a>
+        </>
+      )}
+    </span>
+  );
+}
+
+// Every question in a candidate's letter, worded exactly as sent. Rows expand
+// to show the full question and a copy button for debate-night posting.
+function QuestionTable({ candidate }: { candidate: CandidateLetter }) {
+  const qs = candidate.questions;
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  const allOpen = open.size === qs.length;
+
+  const toggle = (i: number) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-liberation-gold/20 bg-liberation-cream/5 p-4">
-      <span className="text-[11px] font-semibold uppercase tracking-widest text-liberation-gold">{topic}</span>
-      <blockquote className="max-w-prose select-text text-[15px] text-liberation-cream">{text}</blockquote>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={copy}
-        className="self-start rounded-full border-liberation-gold bg-transparent text-liberation-gold hover:bg-liberation-gold/15 hover:text-liberation-gold"
-      >
-        {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
-        {copied ? "Copied" : "Copy question"}
-      </Button>
+    <div className="mb-5">
+      <div className="mb-2 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setOpen(allOpen ? new Set() : new Set(qs.map((_, i) => i)))}
+          className="text-xs font-semibold text-liberation-gold underline-offset-2 hover:underline"
+        >
+          {allOpen ? "Collapse all" : "Expand all"}
+        </button>
+      </div>
+      <div className="overflow-hidden rounded-xl border border-gray-200">
+        <table className="w-full border-collapse text-left text-sm">
+          <caption className="sr-only">Questions in the open letter to {candidate.name}</caption>
+          <thead className="bg-gray-50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            <tr>
+              <th scope="col" className="w-10 px-3 py-2.5">#</th>
+              <th scope="col" className="px-3 py-2.5">Question</th>
+              <th scope="col" className="hidden w-44 px-3 py-2.5 sm:table-cell">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {qs.map((q, i) => {
+              const isOpen = open.has(i);
+              return (
+                <Fragment key={q.topic}>
+                  <tr className="border-t border-gray-200 align-top">
+                    <td className="px-3 py-3 font-mono text-xs text-gray-500">{i + 1}</td>
+                    <td className="px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={() => toggle(i)}
+                        aria-expanded={isOpen}
+                        aria-controls={`q-${candidate.id}-${i}`}
+                        className="flex w-full items-start justify-between gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-liberation-gold"
+                      >
+                        <span className="min-w-0">
+                          <strong className="block text-gray-900">{q.topic}</strong>
+                          {!isOpen && <span className="line-clamp-1 text-gray-600">{q.text}</span>}
+                        </span>
+                        <ChevronDown
+                          className={`mt-0.5 h-4 w-4 shrink-0 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <div className="mt-1 text-xs sm:hidden">
+                        <AnswerStatus q={q} />
+                      </div>
+                    </td>
+                    <td className="hidden px-3 py-3 text-xs sm:table-cell">
+                      <AnswerStatus q={q} />
+                    </td>
+                  </tr>
+                  {isOpen && (
+                    <tr id={`q-${candidate.id}-${i}`} className="bg-gray-50">
+                      <td />
+                      <td colSpan={2} className="px-3 pb-4 pt-1">
+                        <blockquote className="max-w-prose select-text text-[15px] text-gray-800">{q.text}</blockquote>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyQuestion(q.text)}
+                          className="mt-3 rounded-full border-liberation-gold text-liberation-gold hover:bg-liberation-gold/10 hover:text-liberation-gold"
+                        >
+                          <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy question
+                        </Button>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -399,12 +448,12 @@ const DidTheyAnswer = () => {
                 Debate night · Tuesday, October 6
               </p>
               <h2 className="text-2xl font-bold text-liberation-cream md:text-3xl">
-                Ask both candidates the same questions
+                Watch the debate, then check the record
               </h2>
               <p className="max-w-prose text-liberation-cream/75">
-                Jocelyn Benson and John James debate live for one hour. The Liberation Caucus is asking each of them
-                the same public questions. Copy a question, post it while the debate airs, and see who answers on air
-                and who answers in writing.
+                Jocelyn Benson and John James debate live for one hour. Our open letters ask each candidate different
+                questions, matched to their office and record. Expand any question below, copy it, and post it with
+                #DidTheyAnswer while the debate airs to see who answers on air and who answers in writing.
               </p>
               <dl className="grid gap-4 sm:grid-cols-3">
                 <div>
@@ -420,11 +469,6 @@ const DidTheyAnswer = () => {
                   <dd className="text-sm font-medium">Technology, healthcare, immigration, the economy</dd>
                 </div>
               </dl>
-              <div className="space-y-3">
-                {debateQuestions.map((q) => (
-                  <QuestionCard key={q.id} topic={q.topic} text={q.text} />
-                ))}
-              </div>
               <div className="flex flex-wrap items-center gap-3">
                 <WatchPill />
                 <Button
