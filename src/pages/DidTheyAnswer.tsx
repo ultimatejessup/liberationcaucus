@@ -169,7 +169,7 @@ function CandidateCard({ c, now }: { c: CandidateLetter; now: number }) {
     deadlineTs === null
       ? null
       : deadlineTs > now
-        ? `${daysBetween(now, deadlineTs)} days until the response deadline`
+        ? `${daysBetween(now, deadlineTs)} ${daysBetween(now, deadlineTs) === 1 ? "day" : "days"} until the response deadline`
         : "Response deadline has passed";
 
   return (
