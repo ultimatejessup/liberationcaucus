@@ -61,6 +61,7 @@ export const candidates: CandidateLetter[] = [
     office: "Michigan Secretary of State",
     partyLabel: "Democratic nominee for governor",
     sentOn: "2026-09-15T00:00:00-04:00",
+    responseBy: "2026-09-18T00:00:00-04:00",
     status: "no_response",
     subject: "Institutional racism at the Michigan Department of State",
     note:
